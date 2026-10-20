@@ -41,8 +41,16 @@ Or just open `index.html` in a browser.
 | **Evolution Items** | One-time stones ×2 a building type: Thunder→Launchers, Leaf→Catchers, Water→Daycare, Fire→Gyms, Moon→Silph Labs, plus Rare Candy ×2 click power. |
 | **Prestige** | Reset dollars/buildings/stones for **Gym Badges** (1 per $1M earned that run), each worth a permanent **+10%** to all earnings. Pokédex & achievements survive. |
 | **News ticker** | Rotates every 15 seconds; catches, evolutions and prestiges push their own headlines. |
-| **Achievements** | 15 unlockables, from *First Click!* to *Poké Billionaire* — now including *Sharpshooter*, *Shiny Hunter* and *Legend Tamer*. |
+| **Achievements** | 20 unlockables, from *First Click!* to *Poké Billionaire* — now including *Sharpshooter*, *Shiny Hunter* and *Legend Tamer*. |
 | **Bulk buying** | Shop has a ×1 / ×10 / ×100 toggle with true geometric bulk pricing. |
+| **Buddy Pokémon** | Set any caught species as your Buddy (button in the Pokédex): it appears, animated, beside the Pokéball, boosts click power by rarity (+5% common → +50% legendary, +2% per duplicate level, +10% if shiny) and finds a Razz Berry every 200 clicks. |
+| **Combo & crits** | Clicking fast builds a combo meter (up to ×2 click value at a 50 streak); every click has a 5% chance to CRIT for ×10 with a gold burst and screen shake. |
+| **Golden Magikarp** | Every ~45–105s a shiny golden Magikarp swims across the arena — click it before it escapes for a big payout. |
+| **Research Tasks** | 3 daily Professor's Research Tasks (clicks, catches, excellent throws, buildings, goldens…) with progress bars and claimable $/berry rewards. |
+| **Items & ball tiers** | Buy Razz Berries, Great Balls (×1.4) and Ultra Balls (×1.9) in the Items shop; pick your ball in the encounter before throwing — inventory is consumed per throw. |
+| **More endgame** | 3 new buildings (Pokémon Center, Battle Frontier, Champion's Hall) and 3 new ×2 evolution items (Dawn/Dusk Stone, Dragon Fang). |
+| **Animated sprites** | Encounters, Buddies, Pokédex entries and the Golden Magikarp use the animated Gen-V sprites from PokeAPI/sprites (with static/emoji fallbacks). |
+| **Themes & settings** | ⚙️ Settings: 6 Pokémon themes (Kanto Classic, Charizard Ember, Bulbasaur Forest, Squirtle Ocean, Pikachu Volt, Gengar Midnight dark mode) with animated sprite previews, plus toggles for sound, particles, screen shake, floating text, reduce-motion, and 3 number formats (1.5M / full / scientific). All persisted in your save. |
 | **Trainer Level** | Level grows with lifetime earnings (progress bar in the stats column). |
 | **Pokédex** | Full 29-slot grid: unseen species show as silhouettes, caught ones show rarity, shinies sparkle. |
 | **Autosave** | Saves to `localStorage` every **10 seconds**, on tab-hide and on exit. Offline earnings at 50% rate, capped at 8 hours. "Reset Save" in the header wipes everything. |
