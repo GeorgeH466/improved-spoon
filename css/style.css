@@ -74,7 +74,7 @@ a{color:var(--blue)}
   box-shadow:0 18px 30px rgba(0,0,0,.35), inset -14px -18px 30px rgba(0,0,0,.18);
   transition:transform .06s ease;touch-action:manipulation;-webkit-tap-highlight-color:transparent;z-index:2;
 }
-.pokeball:hover{filter:brightness(1.04)}
+.pokeball:hover{filter:brightness(1.04) drop-shadow(0 0 18px rgba(255,203,5,.55))}
 .pokeball.pressed,.pokeball:active{transform:scale(.95)}
 .ball-top,.ball-bottom{position:absolute;left:0;width:100%;height:50%}
 .ball-top{top:0;border-radius:999px 999px 0 0;background:linear-gradient(180deg,#ff5a4e,var(--red) 70%)}
@@ -152,3 +152,75 @@ a{color:var(--blue)}
 .game-footer{text-align:center;color:#eaf4ff;font-size:.78rem;padding:0 1rem 1.4rem}
 .game-footer a{color:var(--yellow)}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}}
+
+/* ============ Polish pass ============ */
+::selection{background:var(--yellow)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:8px}
+.panel{transition:box-shadow .2s}
+@media (min-width:1200px){ .shop{position:sticky;top:84px;max-height:calc(100vh - 100px);overflow-y:auto;scrollbar-width:thin} }
+.qty-btn.active{background:var(--yellow)}
+.buy-qty{display:flex;gap:.4rem;align-items:center;margin-bottom:.6rem;font-weight:700;font-size:.9rem}
+.qty-btn{cursor:pointer;border:2px solid var(--dark);background:#fff;border-radius:999px;padding:.2rem .8rem;font-weight:800;box-shadow:0 2px 0 var(--dark)}
+.qty-btn:active{transform:translateY(2px);box-shadow:none}
+.trainer-card{background:linear-gradient(180deg,#eaf3ff,#fff);border:2px solid #b9cdea;border-radius:12px;padding:.6rem .7rem;margin-top:.8rem}
+.trainer-head{display:flex;justify-content:space-between;font-size:.9rem}
+.trainer-next{color:var(--muted);font-size:.8rem}
+.trainer-track{margin:.4rem 0 0}
+.trainer-fill{background:linear-gradient(90deg,var(--blue),#7ec8ff)}
+.dex-entry.unseen{filter:grayscale(1);opacity:.45}
+.dex-entry.unseen img{filter:brightness(0)}
+.dex-entry.shiny{border-color:#e6b800;background:linear-gradient(180deg,#fffbe6,#fff3a6)}
+.rarity-tag{font-size:.62rem;font-weight:900;letter-spacing:.4px;text-transform:uppercase}
+.btn-ghost-dark{background:#fff;color:var(--ink);border-color:var(--dark);box-shadow:0 3px 0 var(--dark)}
+kbd{background:#222;color:#fff;border-radius:5px;padding:.05rem .35rem;font-size:.72rem}
+
+/* ============ Encounter minigame ============ */
+.modal-backdrop{position:fixed;inset:0;z-index:80;background:rgba(10,15,35,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.battle-card{background:linear-gradient(180deg,#fdfdf5,#fff);border:4px solid var(--dark);border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.5);max-width:520px;width:100%;padding:1.1rem;text-align:center;animation:cardIn .3s cubic-bezier(.2,1.4,.4,1);max-height:92vh;overflow-y:auto}
+@keyframes cardIn{from{transform:scale(.85) translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.battle-card h2{margin:.35rem 0 .6rem;font-size:1.35rem}
+.battle-head{display:flex;gap:.5rem;align-items:center;justify-content:space-between}
+.rarity-badge{font-weight:900;font-size:.72rem;letter-spacing:1px;text-transform:uppercase;padding:.25rem .6rem;border-radius:999px;border:2px solid var(--dark);background:#e5e7eb}
+.rarity-badge.uncommon{background:#bbf7d0}.rarity-badge.rare{background:#bfdbfe}.rarity-badge.legendary{background:linear-gradient(90deg,#fde68a,#f59e0b);color:#451a03}
+.shiny-badge{font-weight:900;font-size:.75rem;color:#92600a;animation:sparkle .8s ease-in-out infinite alternate}
+@keyframes sparkle{from{opacity:.6;transform:scale(1)}to{opacity:1;transform:scale(1.08)}}
+.battle-balls{font-size:.85rem;color:#b3261e;letter-spacing:2px}
+.battle-balls b{color:#b3261e}
+.battle-scene{position:relative;height:230px;border:3px solid var(--dark);border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#8fd0ff 0 55%,#8fce62 55% 78%,#5da244 78% 100%)}
+.battle-grass{position:absolute;bottom:0;left:0;right:0;height:52px;opacity:.5;background:repeating-linear-gradient(100deg,transparent 0 10px,#3f7a2e 10px 12px,transparent 12px 22px)}
+.wild-wrap{position:absolute;left:50%;top:46%;width:170px;height:170px;transform:translate(-50%,-50%)}
+.wild-sprite{width:150px;height:150px;image-rendering:pixelated;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);animation:wildBounce 1s ease-in-out infinite;transition:transform .35s,opacity .35s;filter:drop-shadow(0 10px 6px rgba(0,0,0,.3))}
+@keyframes wildBounce{0%,100%{margin-top:0}50%{margin-top:-12px}}
+.wild-sprite.captured{transform:translate(-50%,-50%) scale(.05);opacity:0}
+.wild-sprite.broke-free{animation:breakFree .45s ease}
+@keyframes breakFree{0%{transform:translate(-50%,-50%) scale(.3)}55%{transform:translate(-50%,-50%) scale(1.25)}100%{transform:translate(-50%,-50%) scale(1)}}
+.wild-sprite.fled{transform:translate(160%,-50%) scale(.8);opacity:0;transition:transform .6s ease-in,opacity .6s}
+.target-ring{position:absolute;inset:0;margin:auto;width:84px;height:84px;border:3px solid rgba(255,255,255,.9);border-radius:50%;box-shadow:0 0 0 2px rgba(20,120,40,.55), inset 0 0 0 2px rgba(20,120,40,.35)}
+.catch-ring{position:absolute;inset:0;margin:auto;width:160px;height:160px;border:4px solid #22c55e;border-radius:50%;pointer-events:none;will-change:transform,border-color}
+.catch-ring.excellent{border-color:#16a34a}
+.catch-ring.weak{border-color:#ef4444}
+.throw-ball{position:absolute;left:8%;bottom:6%;width:44px;height:44px;border-radius:50%;border:3px solid var(--dark);background:linear-gradient(var(--red) 0 46%,var(--dark) 46% 54%,#fff 54% 100%);z-index:4}
+.throw-ball span{position:absolute;inset:0;margin:auto;width:11px;height:11px;border-radius:50%;background:#fff;border:3px solid var(--dark)}
+.throw-ball.flying{animation:throwArc .5s ease-in forwards}
+@keyframes throwArc{0%{left:8%;bottom:6%;transform:scale(1) rotate(0)}60%{left:44%;bottom:52%;transform:scale(.92) rotate(300deg)}100%{left:calc(50% - 22px);bottom:38%;transform:scale(.85) rotate(520deg)}}
+.throw-ball.landed{left:calc(50% - 22px);bottom:38%;transform:scale(.85)}
+.throw-ball.shaking{animation:ballShake .55s ease}
+@keyframes ballShake{0%,100%{transform:scale(.85) rotate(0)}20%{transform:scale(.85) rotate(-16deg)}45%{transform:scale(.85) rotate(12deg)}70%{transform:scale(.85) rotate(-7deg)}}
+.throw-ball.caught-ball{animation:caughtGlow .8s ease infinite alternate}
+@keyframes caughtGlow{from{box-shadow:0 0 0 0 rgba(255,203,5,.0)}to{box-shadow:0 0 26px 8px rgba(255,203,5,.85)}}
+.burst{position:absolute;left:50%;top:42%;z-index:5;pointer-events:none}
+.burst i{position:absolute;font-style:normal;font-size:1.3rem;animation:burstFly .8s ease-out forwards}
+@keyframes burstFly{from{transform:translate(0,0) scale(.5);opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(1.3);opacity:0}}
+.catch-meter{display:flex;gap:.6rem;align-items:center;margin-top:.7rem;font-size:.8rem;font-weight:700}
+.catch-track{flex:1;margin:0}
+#catch-meter-fill{background:linear-gradient(90deg,#ef4444,#facc15,#22c55e)}
+.battle-message{min-height:2.5em;margin:.55rem 0 0;font-size:.94rem}
+.throw-rating{min-height:1.4em;margin:.1rem 0 0;font-weight:900;font-size:1.05rem;color:#146c2e}
+.throw-rating.bad{color:#b3261e}
+.battle-controls{display:flex;gap:.55rem;flex-wrap:wrap;justify-content:center;margin-top:.4rem}
+.btn-throw{background:linear-gradient(180deg,#ff6b5e,var(--red));color:#fff;font-size:1.02rem;padding:.6rem 1.3rem}
+.btn-berry{background:linear-gradient(180deg,#ffd1dc,#ff8fab)}
+.btn:disabled{filter:grayscale(.8);opacity:.5;cursor:not-allowed}
+.battle-tip{font-size:.76rem;color:var(--muted);margin:.65rem 0 0}
+@media (max-width:520px){ .battle-scene{height:200px} .wild-sprite{width:120px;height:120px} }

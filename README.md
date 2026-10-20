@@ -1,8 +1,8 @@
 # PokéClicker 🖱️⚪
 
 A Pokémon-themed homage to Cookie Clicker — click the Pokéball, earn PokéDollars ($),
-buy automated catchers & buildings, catch wild Pokémon every 100 clicks, evolve your
-output with Evolution Stones, and prestige for Gym Badges.
+buy automated catchers & buildings, battle-catch wild Pokémon in a timing minigame every
+100 clicks, evolve your output with Evolution Stones, and prestige for Gym Badges.
 
 Fan-made for fun. Not affiliated with Nintendo, Game Freak, or The Pokémon Company.
 Sprites come from [PokeAPI/sprites](https://github.com/PokeAPI/sprites).
@@ -37,11 +37,14 @@ Or just open `index.html` in a browser.
 | **Click** | Click the Pokéball for $1 (floating `+$` popup at your cursor, squish animation, optional pop sound). |
 | **Buildings** | Pokéball Launcher $15 (+0.1/s) · Auto-Catcher NPC $100 (+1/s) · Daycare Center $1,100 (+8/s) · Pokémon Gym $12,000 (+47/s) · Silph Co. Lab $130,000 (+260/s). Each purchase multiplies that building's next cost by **1.15^owned**. |
 | **Shop reveal** | Buildings/upgrades stay hidden until your balance reaches **60% of their cost**, and grey out when unaffordable. |
-| **Catch 'em** | Every **100 manual clicks** a random wild Pokémon is caught (30 species, real sprites). Each catch = permanent **+1% DPS**; duplicates count. Tracked in your Pokédex. |
+| **Catch 'em (minigame!)** | Every **100 manual clicks** a wild Pokémon appears in a battle modal. Time the shrinking ring against the target circle and throw — Excellent throws are worth ×1.6 catch chance — then survive **3 ball shakes**. You get **3 balls** and **1 Razz Berry** (×1.45) per encounter; if it breaks free it may **flee**. 29 species across Common/Uncommon/Rare/Legendary rarities (weighted spawns, real per-species catch rates), plus a 1/32 **✨ shiny** chance (shiny sprite, +5% DPS instead of +1%). Every catch is a permanent DPS bonus; duplicates count. `Space` throws, `Esc` runs. |
 | **Evolution Items** | One-time stones ×2 a building type: Thunder→Launchers, Leaf→Catchers, Water→Daycare, Fire→Gyms, Moon→Silph Labs, plus Rare Candy ×2 click power. |
 | **Prestige** | Reset dollars/buildings/stones for **Gym Badges** (1 per $1M earned that run), each worth a permanent **+10%** to all earnings. Pokédex & achievements survive. |
 | **News ticker** | Rotates every 15 seconds; catches, evolutions and prestiges push their own headlines. |
-| **Achievements** | 10 unlockables, from *First Click!* to *Poké Billionaire*. |
+| **Achievements** | 15 unlockables, from *First Click!* to *Poké Billionaire* — now including *Sharpshooter*, *Shiny Hunter* and *Legend Tamer*. |
+| **Bulk buying** | Shop has a ×1 / ×10 / ×100 toggle with true geometric bulk pricing. |
+| **Trainer Level** | Level grows with lifetime earnings (progress bar in the stats column). |
+| **Pokédex** | Full 29-slot grid: unseen species show as silhouettes, caught ones show rarity, shinies sparkle. |
 | **Autosave** | Saves to `localStorage` every **10 seconds**, on tab-hide and on exit. Offline earnings at 50% rate, capped at 8 hours. "Reset Save" in the header wipes everything. |
 | **Numbers** | Formatted gracefully past a million: `1.5M`, `2.3B`, `T`, `Qa`… |
 

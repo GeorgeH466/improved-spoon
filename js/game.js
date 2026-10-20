@@ -28,13 +28,26 @@ const UPGRADES = [ // Evolution items: one-time, ×2 to one building (or clicks)
   { id:"rare-candy",    name:"Rare Candy",    emoji:"🍬", sprite:SPRITE_ITEM("rare-candy"),    cost:10000,   target:"click",    label:"Click power ×2" },
 ];
 
+/* rarity: base catch chance per throw (before throw-quality/berry multipliers) + flee chance after a break-free */
 const WILD_POKEMON = [
-  [16,"Pidgey"],[19,"Rattata"],[10,"Caterpie"],[13,"Weedle"],[25,"Pikachu"],[39,"Jigglypuff"],
-  [74,"Geodude"],[92,"Gastly"],[133,"Eevee"],[4,"Charmander"],[7,"Squirtle"],[1,"Bulbasaur"],
-  [52,"Meowth"],[54,"Psyduck"],[66,"Machop"],[129,"Magikarp"],[132,"Ditto"],[143,"Snorlax"],
-  [147,"Dratini"],[150,"Mewtwo"],[151,"Mew"],[35,"Clefairy"],[37,"Vulpix"],[58,"Growlithe"],
-  [95,"Onix"],[104,"Cubone"],[113,"Chansey"],[131,"Lapras"],[137,"Porygon"],
+  { id:16,  name:"Pidgey",     rarity:"common",    rate:0.70, flee:0.10 }, { id:19,  name:"Rattata",   rarity:"common",    rate:0.70, flee:0.12 },
+  { id:10,  name:"Caterpie",   rarity:"common",    rate:0.78, flee:0.06 }, { id:13,  name:"Weedle",    rarity:"common",    rate:0.78, flee:0.06 },
+  { id:129, name:"Magikarp",   rarity:"common",    rate:0.82, flee:0.04 }, { id:74,  name:"Geodude",   rarity:"common",    rate:0.62, flee:0.08 },
+  { id:25,  name:"Pikachu",    rarity:"uncommon",  rate:0.48, flee:0.12 }, { id:39,  name:"Jigglypuff",rarity:"uncommon",  rate:0.52, flee:0.10 },
+  { id:54,  name:"Psyduck",    rarity:"uncommon",  rate:0.52, flee:0.10 }, { id:52,  name:"Meowth",    rarity:"uncommon",  rate:0.50, flee:0.16 },
+  { id:66,  name:"Machop",     rarity:"uncommon",  rate:0.48, flee:0.10 }, { id:92,  name:"Gastly",    rarity:"uncommon",  rate:0.46, flee:0.14 },
+  { id:37,  name:"Vulpix",     rarity:"uncommon",  rate:0.46, flee:0.12 }, { id:58,  name:"Growlithe", rarity:"uncommon",  rate:0.46, flee:0.12 },
+  { id:35,  name:"Clefairy",   rarity:"uncommon",  rate:0.48, flee:0.10 }, { id:104, name:"Cubone",    rarity:"uncommon",  rate:0.48, flee:0.10 },
+  { id:133, name:"Eevee",      rarity:"rare",      rate:0.34, flee:0.14 }, { id:4,   name:"Charmander",rarity:"rare",      rate:0.32, flee:0.12 },
+  { id:7,   name:"Squirtle",   rarity:"rare",      rate:0.32, flee:0.12 }, { id:1,   name:"Bulbasaur", rarity:"rare",      rate:0.32, flee:0.12 },
+  { id:132, name:"Ditto",      rarity:"rare",      rate:0.30, flee:0.10 }, { id:95,  name:"Onix",      rarity:"rare",      rate:0.30, flee:0.10 },
+  { id:113, name:"Chansey",    rarity:"rare",      rate:0.28, flee:0.12 }, { id:131, name:"Lapras",    rarity:"rare",      rate:0.28, flee:0.10 },
+  { id:147, name:"Dratini",    rarity:"rare",      rate:0.26, flee:0.14 }, { id:137, name:"Porygon",   rarity:"rare",      rate:0.30, flee:0.08 },
+  { id:143, name:"Snorlax",    rarity:"rare",      rate:0.26, flee:0.05 },
+  { id:150, name:"Mewtwo",     rarity:"legendary", rate:0.12, flee:0.25 }, { id:151, name:"Mew",       rarity:"legendary", rate:0.12, flee:0.25 },
 ];
+const RARITY_WEIGHTS = { common:58, uncommon:27, rare:11, legendary:4 };
+const SHINY_CHANCE = 1/32;
 
 const NEWS = [
   "Wild Rattata spotted chewing on wires at Silph Co. — productivity mysteriously improves.",
@@ -62,6 +75,10 @@ const ACHIEVEMENTS = [
   { id:"rich-1m",      icon:"💰", name:"Millionaire",          desc:"Earn $1M lifetime.",                   test:s=>s.lifetime>=1e6 },
   { id:"rich-1b",      icon:"🤑", name:"Poké Billionaire",     desc:"Earn $1B lifetime.",                   test:s=>s.lifetime>=1e9 },
   { id:"prestige-1",   icon:"🏅", name:"League Challenger",    desc:"Prestige at least once.",              test:s=>s.badges>=1 },
+  { id:"excellent-1",  icon:"🎯", name:"Sharpshooter",         desc:"Land an Excellent throw.",             test:s=>s.excellentThrows>=1 },
+  { id:"catch-25",     icon:"🗑️", name:"Route Champion",       desc:"Catch 25 Pokémon.",                    test:s=>s.totalCaught>=25 },
+  { id:"shiny-1",      icon:"✨", name:"Shiny Hunter",          desc:"Catch a shiny Pokémon.",               test:s=>s.shinies>=1 },
+  { id:"legendary-1",  icon:"🌟", name:"Legend Tamer",          desc:"Catch a Legendary Pokémon.",           test:s=>(s.legendaryCaught||0)>=1 },
 ];
 
 /* ---------- Number formatting ---------- */
@@ -86,7 +103,8 @@ function defaultState(){
     version:1, balance:0, lifetime:0, runEarned:0,
     totalClicks:0, clicksSinceCatch:0, totalCaught:0,
     buildings:Object.fromEntries(BUILDINGS.map(b=>[b.id,0])),
-    upgrades:[], pokedex:{}, achievements:[], badges:0,
+    upgrades:[], pokedex:{}, shinyDex:{}, achievements:[], badges:0,
+    bonusPct:0, encounters:0, throws:0, excellentThrows:0, shinies:0, legendaryCaught:0,
     revealedBuildings:[], revealedUpgrades:[], muted:false,
     lastSeen:Date.now(),
   };
@@ -96,7 +114,8 @@ let state = defaultState();
 function totalBuildings(s=state){ return BUILDINGS.reduce((a,b)=>a+(s.buildings[b.id]||0),0); }
 function buildingCost(b){ return Math.ceil(b.baseCost * Math.pow(COST_GROWTH, state.buildings[b.id]||0)); }
 function buildingMultiplier(id){ return state.upgrades.includes(UPGRADES.find(u=>u.target===id)?.id) ? 2 : 1; }
-function globalMultiplier(){ return (1 + state.badges * 0.10) * (1 + state.totalCaught * 0.01); }
+function globalMultiplier(){ return (1 + state.badges * 0.10) * (1 + state.bonusPct * 0.01); }
+function trainerLevel(){ return Math.floor(Math.sqrt(state.lifetime / 500)) + 1; }
 function getDPS(){
   const base = BUILDINGS.reduce((sum,b)=> sum + (state.buildings[b.id]||0) * b.baseDps * buildingMultiplier(b.id), 0);
   return base * globalMultiplier();
@@ -133,7 +152,9 @@ function loadGame(){
       achievements:Array.isArray(parsed.achievements)?parsed.achievements:[],
       revealedBuildings:Array.isArray(parsed.revealedBuildings)?parsed.revealedBuildings:[],
       revealedUpgrades:Array.isArray(parsed.revealedUpgrades)?parsed.revealedUpgrades:[],
+      shinyDex:parsed.shinyDex && typeof parsed.shinyDex==="object"?parsed.shinyDex:{},
     };
+    if (parsed.bonusPct === undefined) state.bonusPct = state.totalCaught; // pre-minigame saves: +1% per catch
     // Offline earnings: 50% rate, capped at 8h
     const elapsed = Math.min(Math.max((Date.now() - (state.lastSeen||Date.now()))/1000, 0), OFFLINE_CAP_SECONDS);
     const dps = getDPS();
@@ -154,9 +175,16 @@ const els = {
   news:$("news-text"), buildingShop:$("building-shop"), upgradeShop:$("upgrade-shop"),
   pokedex:$("pokedex"), achievements:$("achievements"), prestigePending:$("prestige-pending"),
   btnPrestige:$("btn-prestige"), btnMute:$("btn-mute"),
+  trainerLevel:$("trainer-level"), trainerNext:$("trainer-next"), trainerBar:$("trainer-bar"),
+  modal:$("encounter-modal"), wildTitle:$("wild-title"), wildSprite:$("wild-sprite"), wildRarity:$("wild-rarity"),
+  wildShiny:$("wild-shiny"), wildBalls:$("wild-balls"), catchRing:$("catch-ring"), throwBall:$("throw-ball"),
+  burst:$("burst"), battleMsg:$("battle-message"), throwRating:$("throw-rating"),
+  catchMeterFill:$("catch-meter-fill"), catchMeterLabel:$("catch-meter-label"),
+  btnThrow:$("btn-throw"), btnBerry:$("btn-berry"), btnRun:$("btn-run"), btnCloseEncounter:$("btn-close-encounter"),
   stat:{ balance:$("stat-balance"), dps:$("stat-dps"), lifetime:$("stat-lifetime"), run:$("stat-run"),
     clicks:$("stat-clicks"), buildings:$("stat-buildings"), caught:$("stat-caught"), dex:$("stat-dex"),
-    collection:$("stat-collection-bonus"), badges:$("stat-badges") },
+    collection:$("stat-collection-bonus"), badges:$("stat-badges"),
+    seen:$("stat-seen"), throws:$("stat-throws"), excellent:$("stat-excellent"), shinies:$("stat-shinies") },
 };
 function toast(html){
   const t = document.createElement("div"); t.className="toast"; t.innerHTML=html;
@@ -207,7 +235,8 @@ function refreshShop(){
     row.root.classList.toggle("hidden", !revealed);
     if (!revealed) continue;
     row.contrib.textContent = fmtRate(buildingDPS(b)) + (buildingMultiplier(b.id)>1 ? " (×2 stone!)" : "");
-    const afford = state.balance >= cost;
+    row.cost.textContent = buyQty > 1 ? `${fmtMoney(bulkCost(b, buyQty))} ×${buyQty}` : fmtMoney(cost);
+    const afford = state.balance >= bulkCost(b, buyQty);
     row.root.disabled = !afford;
     row.root.classList.toggle("cant-afford", !afford);
     row.cost.classList.toggle("cant", !afford);
@@ -229,10 +258,21 @@ function refreshShop(){
 }
 
 /* ---------- Purchases ---------- */
+let buyQty = 1;
+document.querySelectorAll(".qty-btn").forEach(btn=>btn.addEventListener("click", ()=>{
+  buyQty = Number(btn.dataset.qty) || 1;
+  document.querySelectorAll(".qty-btn").forEach(b=>b.classList.toggle("active", b===btn));
+  refreshShop();
+}));
+function bulkCost(b, qty){
+  let total = 0; const owned = state.buildings[b.id]||0;
+  for (let i=0;i<qty;i++) total += Math.ceil(b.baseCost * Math.pow(COST_GROWTH, owned+i));
+  return total;
+}
 function buyBuilding(id){
-  const b = BUILDINGS.find(x=>x.id===id), cost = buildingCost(b);
+  const b = BUILDINGS.find(x=>x.id===id), cost = bulkCost(b, buyQty);
   if (state.balance < cost) return;
-  state.balance -= cost; state.buildings[id]++;
+  state.balance -= cost; state.buildings[id] += buyQty;
   pop(els.buildingShop); checkAchievements(); refreshAll(); saveGame();
 }
 function buyUpgrade(id){
@@ -247,17 +287,19 @@ function pop(el){ el.animate([{transform:"scale(1)"},{transform:"scale(1.01)"},{
 
 /* ---------- Clicking & catching ---------- */
 let audioCtx = null;
-function clickSound(){
+function tone(freq, dur=0.1, type="sine", delay=0, vol=0.06){
   if (state.muted) return;
   try{
     audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const t0 = audioCtx.currentTime + delay;
     const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.type="sine"; o.frequency.setValueAtTime(620 + Math.random()*80, audioCtx.currentTime);
-    o.frequency.exponentialRampToValueAtTime(180, audioCtx.currentTime + .08);
-    g.gain.setValueAtTime(.06, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(.0001, audioCtx.currentTime + .09);
-    o.connect(g).connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + .1);
+    o.type=type; o.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+    o.connect(g).connect(audioCtx.destination); o.start(t0); o.stop(t0 + dur + .02);
   }catch(e){/* audio blocked — ignore */}
 }
+function clickSound(){ tone(620 + Math.random()*80, .08, "sine", 0, .05); }
+function jingle(notes){ notes.forEach((f,i)=>tone(f, .16, "triangle", i*.11, .07)); }
 function spawnFloatText(x, y, text){
   const rect = els.stage.getBoundingClientRect();
   const el = document.createElement("span");
@@ -272,34 +314,199 @@ els.ball.addEventListener("pointerdown", e => {
   els.ball.classList.add("pressed"); setTimeout(()=>els.ball.classList.remove("pressed"), 90);
   spawnFloatText(e.clientX || rectCenter().x, e.clientY || rectCenter().y, "+" + fmtMoney(gain));
   clickSound();
-  if (state.clicksSinceCatch >= CLICKS_PER_CATCH){ state.clicksSinceCatch = 0; catchPokemon(); }
+  if (state.clicksSinceCatch >= CLICKS_PER_CATCH && !encounter){ state.clicksSinceCatch = 0; startEncounter(); }
   checkAchievements(); refreshHUD();
 });
 function rectCenter(){ const r = els.ball.getBoundingClientRect(); return { x:r.left+r.width/2, y:r.top+r.height/2 }; }
 
-function catchPokemon(){
-  const [id,name] = WILD_POKEMON[Math.floor(Math.random()*WILD_POKEMON.length)];
-  const isNew = !state.pokedex[id];
-  state.pokedex[id] = (state.pokedex[id]||0) + 1;
-  state.totalCaught++;
-  els.ball.classList.remove("wiggle"); void els.ball.offsetWidth; els.ball.classList.add("wiggle");
-  els.banner.classList.remove("hidden");
-  els.banner.innerHTML = `${imgTag(SPRITE_POKEMON(id),"🐾",name)}
-    <div><b>Gotcha! ${name} was caught!</b><br>
-    ${isNew ? "New Pokédex entry registered!" : `You now have ${state.pokedex[id]} × ${name}.`}
-    Every catch adds a permanent <b>+1% DPS</b> (now +${state.totalCaught}%).</div>`;
-  setNews(`Wild ${name} caught by a local trainer after exactly 100 clicks. 'Worth it,' says trainer.`);
-  toast(`🎉 Gotcha! <b>${name}</b> was caught! (+1% DPS)`);
-  renderPokedex(); checkAchievements(); saveGame();
+/* ================= Catching minigame =================
+   Every 100 clicks a wild Pokémon appears in a modal:
+   time the shrinking ring against the target circle, throw one of
+   3 balls, survive 3 shakes. Berries, rarities, shinies, fleeing. */
+let encounter = null, ringRAF = null, encounterSeq = 0;
+const wait = ms => new Promise(r=>setTimeout(r, ms));
+const clamp01 = v => Math.min(0.95, Math.max(0.02, v));
+
+function pickWild(){
+  const pool = Object.entries(RARITY_WEIGHTS);
+  let roll = Math.random() * pool.reduce((a,[,w])=>a+w,0), rarity = "common";
+  for (const [r,w] of pool){ if ((roll -= w) <= 0){ rarity = r; break; } }
+  const group = WILD_POKEMON.filter(m=>m.rarity===rarity);
+  return group[Math.floor(Math.random()*group.length)];
 }
+
+function startEncounter(){
+  const mon = pickWild();
+  encounter = { ...mon, shiny:Math.random() < SHINY_CHANCE, balls:3, berry:false, busy:false, over:false, ringScale:1, seq:++encounterSeq };
+  state.encounters++;
+  els.wildTitle.textContent = encounter.shiny ? `A wild ✨ ${mon.name} appeared!` : `A wild ${mon.name} appeared!`;
+  els.wildRarity.textContent = mon.rarity; els.wildRarity.className = "rarity-badge " + mon.rarity;
+  els.wildShiny.classList.toggle("hidden", !encounter.shiny);
+  els.wildSprite.src = SPRITE_POKEMON(mon.id).replace("/pokemon/", encounter.shiny ? "/pokemon/shiny/" : "/pokemon/");
+  els.wildSprite.alt = mon.name;
+  els.wildSprite.className = "wild-sprite";
+  els.wildSprite.onerror = ()=>{ els.wildSprite.src = SPRITE_POKEMON(mon.id); els.wildSprite.onerror = null; };
+  els.catchMeterFill.style.width = Math.round(mon.rate*100) + "%";
+  els.catchMeterLabel.textContent = `${mon.rarity} · base ${Math.round(mon.rate*100)}%`;
+  els.battleMsg.textContent = "Time your throw! Press THROW (or Space) when the shrinking ring meets the target circle.";
+  els.throwRating.textContent = "";
+  els.throwBall.className = "throw-ball hidden"; els.burst.innerHTML = "";
+  setBattleControls(false);
+  updateBallsDisplay();
+  els.modal.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  jingle([523, 659, 784]);
+  checkAchievements(); refreshHUD();
+  startRing();
+}
+function updateBallsDisplay(){ els.wildBalls.textContent = encounter ? "●".repeat(encounter.balls) + "○".repeat(Math.max(0,3-encounter.balls)) : ""; }
+function setBattleControls(over){
+  const busy = !!(encounter && encounter.busy);
+  els.btnThrow.disabled = over || busy;
+  els.btnBerry.disabled = over || busy || !!(encounter && encounter.berry);
+  els.btnRun.disabled = over || busy;
+  els.btnCloseEncounter.classList.toggle("hidden", !over);
+  els.btnThrow.classList.toggle("hidden", over);
+  els.btnBerry.classList.toggle("hidden", over);
+  els.btnRun.classList.toggle("hidden", over);
+}
+function startRing(){
+  cancelRing();
+  const t0 = performance.now(), PERIOD = 1150;
+  const step = now => {
+    if (!encounter || encounter.over || encounter.busy) return;
+    const phase = ((now - t0) % PERIOD) / PERIOD;
+    encounter.ringScale = 1 - phase;
+    els.catchRing.style.transform = `scale(${encounter.ringScale})`;
+    const d = Math.abs(encounter.ringScale - 0.525);
+    els.catchRing.classList.toggle("excellent", d <= 0.07);
+    els.catchRing.classList.toggle("weak", d > 0.27);
+    ringRAF = requestAnimationFrame(step);
+  };
+  ringRAF = requestAnimationFrame(step);
+}
+function cancelRing(){ if (ringRAF) cancelAnimationFrame(ringRAF); ringRAF = null; }
+function rateThrow(scale){
+  const d = Math.abs(scale - 0.525);
+  if (d <= 0.07) return { label:"EXCELLENT!", mult:1.6, excellent:true };
+  if (d <= 0.15) return { label:"Great!", mult:1.3 };
+  if (d <= 0.27) return { label:"Nice", mult:1.0 };
+  return { label:"Weak throw…", mult:0.55, bad:true };
+}
+
+async function throwBall(){
+  if (!encounter || encounter.busy || encounter.over) return;
+  const seq = encounter.seq, rating = rateThrow(encounter.ringScale);
+  encounter.busy = true; state.throws++;
+  if (rating.excellent) state.excellentThrows++;
+  cancelRing();
+  els.throwRating.textContent = rating.label;
+  els.throwRating.classList.toggle("bad", !!rating.bad);
+  setBattleControls(false);
+  tone(300, .18, "sawtooth", 0, .03);
+  els.throwBall.className = "throw-ball flying";
+  els.battleMsg.textContent = `You threw a Poké Ball at ${encounter.name}!`;
+  await wait(520); if (!encounter || encounter.seq !== seq) return;
+  els.throwBall.className = "throw-ball landed";
+  els.wildSprite.classList.add("captured");
+  tone(180, .12, "square", 0, .04);
+  await wait(420); if (!encounter || encounter.seq !== seq) return;
+
+  const finalP = clamp01(encounter.rate * rating.mult * (encounter.berry ? 1.45 : 1));
+  const shakeP = Math.cbrt(finalP);
+  let shakes = 0; while (shakes < 3 && Math.random() < shakeP) shakes++;
+  for (let i=0;i<shakes;i++){
+    els.throwBall.classList.remove("shaking"); void els.throwBall.offsetWidth; els.throwBall.classList.add("shaking");
+    tone(1400, .05, "square", 0, .03);
+    els.battleMsg.textContent = ["The ball wobbles…", "…and wobbles again…", "…one more wobble…"][i];
+    await wait(580); if (!encounter || encounter.seq !== seq) return;
+  }
+  if (shakes === 3) return succeedCatch(seq);
+
+  // Broke free!
+  encounter.balls--; updateBallsDisplay();
+  els.throwBall.className = "throw-ball hidden";
+  els.wildSprite.classList.remove("captured"); els.wildSprite.classList.add("broke-free");
+  setTimeout(()=>els.wildSprite.classList.remove("broke-free"), 500);
+  jingle([392, 330, 262]);
+  if (encounter.balls <= 0) return endEncounter(`${encounter.name} broke free — and you're out of balls! It wanders off…`, seq);
+  if (Math.random() < encounter.flee) return fleeEncounter(seq);
+  encounter.busy = false; setBattleControls(false);
+  els.battleMsg.textContent = `${encounter.name} broke free after ${shakes} shake${shakes===1?"":"s"}! ${encounter.balls} ball${encounter.balls===1?"":"s"} left — try again!`;
+  checkAchievements(); refreshHUD(); startRing();
+}
+function starBurst(){
+  els.burst.innerHTML = "";
+  for (let i=0;i<10;i++){
+    const el = document.createElement("i");
+    el.textContent = ["⭐","✨","💛","🌟"][i%4];
+    el.style.setProperty("--dx", (Math.cos(i/10*6.28)*110) + "px");
+    el.style.setProperty("--dy", (Math.sin(i/10*6.28)*90 - 20) + "px");
+    els.burst.appendChild(el);
+  }
+}
+function succeedCatch(seq){
+  if (!encounter || encounter.seq !== seq) return;
+  const mon = encounter, isNew = !state.pokedex[mon.id];
+  state.pokedex[mon.id] = (state.pokedex[mon.id]||0) + 1;
+  if (mon.shiny){ state.shinyDex[mon.id] = true; state.shinies++; }
+  if (mon.rarity === "legendary") state.legendaryCaught++;
+  state.totalCaught++;
+  const bonus = mon.shiny ? 5 : 1;
+  state.bonusPct += bonus;
+  els.throwBall.className = "throw-ball landed caught-ball";
+  starBurst(); jingle([523,659,784,1047,1319]);
+  els.battleMsg.innerHTML = `<b>Gotcha! ${mon.shiny?"✨ ":""}${mon.name} was caught!</b><br>${isNew?"New Pokédex entry! ":`You now have ${state.pokedex[mon.id]} × ${mon.name}. `}+${bonus}% DPS forever (collection bonus now +${state.bonusPct}%).`;
+  els.banner.classList.remove("hidden");
+  els.banner.innerHTML = `${imgTag(SPRITE_POKEMON(mon.id),"🐾",mon.name)}<div><b>Gotcha! ${mon.shiny?"✨ ":""}${mon.name} was caught!</b><br>${isNew?"New Pokédex entry registered!":""} Collection bonus: <b>+${state.bonusPct}% DPS</b>.</div>`;
+  setNews(`Wild ${mon.name} caught by a local trainer in a dramatic ball-shaking showdown. 'Worth it,' says trainer.`);
+  toast(`🎉 Gotcha! <b>${mon.shiny?"✨ ":""}${mon.name}</b> was caught! (+${bonus}% DPS)`);
+  encounter.over = true; setBattleControls(true);
+  renderPokedex(); checkAchievements(); refreshHUD(); saveGame();
+}
+function fleeEncounter(seq){
+  if (!encounter || encounter.seq !== seq) return;
+  els.wildSprite.classList.add("fled");
+  endEncounter(`Oh no — the wild ${encounter.name} fled into the tall grass!`, seq, true);
+}
+function endEncounter(msg, seq, alreadyFled=false){
+  if (!encounter || encounter.seq !== seq) return;
+  if (!alreadyFled && encounter.balls <= 0) { /* out of balls message already set */ }
+  els.battleMsg.textContent = msg;
+  encounter.over = true; cancelRing(); setBattleControls(true);
+  jingle([330, 262, 196]);
+  refreshHUD(); saveGame();
+}
+function closeEncounter(){
+  encounterSeq++; encounter = null; cancelRing();
+  els.modal.classList.add("hidden");
+  document.body.style.overflow = "";
+  refreshHUD();
+}
+els.btnThrow.addEventListener("click", throwBall);
+els.btnBerry.addEventListener("click", ()=>{
+  if (!encounter || encounter.busy || encounter.berry) return;
+  encounter.berry = true;
+  els.wildSprite.style.filter = "drop-shadow(0 10px 6px rgba(0,0,0,.3)) hue-rotate(-25deg) saturate(1.6)";
+  setTimeout(()=>{ els.wildSprite.style.filter = ""; }, 900);
+  els.battleMsg.textContent = `You tossed a Razz Berry! ${encounter.name} is distracted — catch chance boosted for your next throw.`;
+  setBattleControls(false); tone(880, .12, "triangle", 0, .05);
+});
+els.btnRun.addEventListener("click", ()=>{ if (encounter && !encounter.busy){ toast("🏃 You ran away safely!"); closeEncounter(); } });
+els.btnCloseEncounter.addEventListener("click", closeEncounter);
+document.addEventListener("keydown", e=>{
+  if (!encounter || els.modal.classList.contains("hidden")) return;
+  if (e.code === "Space"){ e.preventDefault(); throwBall(); }
+  if (e.code === "Escape" && !encounter.busy) closeEncounter();
+});
 
 /* ---------- Pokédex / achievements / news ---------- */
 function renderPokedex(){
-  const entries = Object.entries(state.pokedex).sort((a,b)=>a[0]-b[0]);
-  els.pokedex.innerHTML = entries.length ? entries.map(([id,count])=>{
-    const mon = WILD_POKEMON.find(p=>p[0]==id); const name = mon ? mon[1] : `#${id}`;
-    return `<div class="dex-entry">${count>1?`<span class="dex-count">×${count}</span>`:""}${imgTag(SPRITE_POKEMON(id),"🐾",name)}<div>${name}</div></div>`;
-  }).join("") : `<p class="empty-note">No Pokémon yet. Keep clicking — something rustles in the tall grass…</p>`;
+  els.pokedex.innerHTML = WILD_POKEMON.map(mon=>{
+    const count = state.pokedex[mon.id]||0, seen = count>0, shiny = !!state.shinyDex[mon.id];
+    const src = shiny ? SPRITE_POKEMON(mon.id).replace("/pokemon/","/pokemon/shiny/") : SPRITE_POKEMON(mon.id);
+    return `<div class="dex-entry ${seen?"":"unseen"} ${shiny?"shiny":""}">${count>1?`<span class="dex-count">×${count}</span>`:""}${imgTag(src,"❔",seen?mon.name:"Unknown")}<div>${seen?mon.name:"???"}${shiny?" ✨":""}</div><div class="rarity-tag">${mon.rarity}</div></div>`;
+  }).join("");
 }
 function renderAchievements(){
   els.achievements.innerHTML = ACHIEVEMENTS.map(a=>{
@@ -337,7 +544,15 @@ function refreshHUD(){
   els.stat.buildings.textContent = formatNumber(totalBuildings());
   els.stat.caught.textContent = formatNumber(state.totalCaught);
   els.stat.dex.textContent = `${Object.keys(state.pokedex).length} / ${WILD_POKEMON.length}`;
-  els.stat.collection.textContent = `+${state.totalCaught}%`;
+  els.stat.collection.textContent = `+${state.bonusPct}%`;
+  els.stat.seen.textContent = formatNumber(state.encounters);
+  els.stat.throws.textContent = formatNumber(state.throws);
+  els.stat.excellent.textContent = formatNumber(state.excellentThrows);
+  els.stat.shinies.textContent = formatNumber(state.shinies);
+  const lvl = trainerLevel(), prevAt = Math.pow(lvl-1,2)*500, nextAt = Math.pow(lvl,2)*500;
+  els.trainerLevel.textContent = lvl;
+  els.trainerNext.textContent = `next level at ${fmtMoney(nextAt)} lifetime`;
+  els.trainerBar.style.width = Math.min(100, Math.max(0, (state.lifetime - prevAt) / Math.max(1,(nextAt - prevAt)) * 100)) + "%";
   els.stat.badges.textContent = formatNumber(state.badges);
   els.prestigePending.textContent = formatNumber(prestigePending());
   els.btnPrestige.disabled = prestigePending() < 1;
@@ -363,6 +578,7 @@ function buildUpgradeVisibilityReset(){ /* rows stay built; refreshShop re-evalu
 
 $("btn-reset").addEventListener("click", ()=>{
   if (!confirm("Delete your ENTIRE save (including Pokédex, achievements and badges) and start over?")) return;
+  if (encounter) closeEncounter();
   localStorage.removeItem(SAVE_KEY); state = defaultState();
   els.banner.classList.add("hidden"); renderPokedex(); renderAchievements(); refreshAll(); saveGame();
   toast("🧹 Save wiped. A new journey begins!");
