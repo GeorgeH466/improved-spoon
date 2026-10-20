@@ -31,6 +31,50 @@ const REGIONS = [
 ];
 const isNight = () => { const h = new Date().getHours(); return h >= 19 || h < 7; };
 
+/* ================= Game modes ================= */
+const MODES = [
+  { id:"classic",  icon:"🎮", name:"Classic",  desc:"The original journey. No twists, just vibes and clicking." },
+  { id:"zen",      icon:"🧘", name:"Zen",      desc:"Peaceful: Pokémon never flee, no Rocket theft, +20% DPS, +10% clicks. Golden Magikarp visit more often." },
+  { id:"speedrun", icon:"⏱️", name:"Speedrun", desc:"Unlocks the $100k speedrun timer below. Race your best time for glory (and prizes)." },
+  { id:"nuzlocke", icon:"💀", name:"Nuzlocke", desc:"HARDCORE: 1 ball per encounter, break-free = it flees, losing a Gym battle faints a random duplicate — but +25% DPS for the brave." },
+];
+/* ================= Weather ================= */
+const WEATHERS = [
+  { id:"clear", icon:"☀️", name:"Clear skies",  dps:1,    click:1,    desc:"Perfect clicking weather." },
+  { id:"sunny", icon:"🌞", name:"Harsh sunlight",dps:1.10, click:1.25, desc:"Clicks +25%, DPS +10%. Sunglasses advised." },
+  { id:"rain",  icon:"🌧️", name:"Rain",         dps:1.05, click:1,    desc:"Catch rates +10% in encounters. Everything is damp." },
+  { id:"storm", icon:"⛈️", name:"Thunderstorm", dps:1,    click:1.10, desc:"Crit chance doubled, ring moves FAST. Electric!" },
+  { id:"snow",  icon:"❄️", name:"Snowfall",     dps:1.08, click:1,    desc:"Combo decays half as fast. Cozy." },
+  { id:"wind",  icon:"🍃", name:"Tailwind",     dps:1,    click:1.05, desc:"The catch ring slows down — easier Excellent throws." },
+  { id:"fog",   icon:"🌫️", name:"Dense fog",    dps:1,    click:1,    desc:"Rare & Legendary spawns up… but things flee more easily." },
+];
+const currentWeather = () => WEATHERS.find(w=>w.id===(state.weather&&state.weather.id)) || WEATHERS[0];
+/* ================= Seasons ================= */
+function currentSeason(){
+  const m = new Date().getMonth();
+  if (m === 9)  return { id:"halloween", icon:"🎃", name:"Spooky Season",   particle:"🦇", note:"Ghost-types are restless…" };
+  if (m === 11) return { id:"winter",    icon:"🎄", name:"Delibird Days",   particle:"❄️", note:"Delibird is delivering gifts!" };
+  if (m >= 2 && m <= 4) return { id:"spring", icon:"🌸", name:"Cherry Blossom", particle:"🌸", note:"Petals — and Oddish — everywhere." };
+  if (m >= 5 && m <= 7) return { id:"summer", icon:"🏖️", name:"Alola Summer",  particle:"☀️", note:"Water-types are splashing about." };
+  return { id:"autumn", icon:"🍂", name:"Autumn Leaves", particle:"🍂", note:"A crisp breeze blows through the tall grass." };
+}
+const SEASON_SPAWNS = { halloween:[92,93,94], winter:[86,225], spring:[43,69,102], summer:[72,98,120], autumn:[21,84] };
+/* ================= Milestones & rivals ================= */
+const MILESTONES = [
+  { at:10000,     label:"Earn $10K lifetime",     reward:1000,   item:null },
+  { at:100000,    label:"Earn $100K lifetime",    reward:8000,   item:"great" },
+  { at:1000000,   label:"Earn $1M lifetime",      reward:60000,  item:"ultra" },
+  { at:10000000,  label:"Earn $10M lifetime",     reward:500000, item:"ultra" },
+  { at:100000000, label:"Earn $100M lifetime",    reward:0,      item:"master" },
+  { at:1000000000,label:"Earn $1B lifetime",      reward:0,      item:"master" },
+];
+const RIVALS = [
+  { name:"Bug Catcher Joey", at:5000 }, { name:"Lass Nikki", at:25000 }, { name:"Hiker Bruno", at:80000 },
+  { name:"Swimmer Marina", at:250000 }, { name:"Rocket Grunt Marco", at:750000 }, { name:"Ace Trainer Yuki", at:2000000 },
+  { name:"Champion Cynthia (fan)", at:8000000 }, { name:"Actual Gary Oak", at:30000000 },
+];
+const fmtTime = ms => { if (!ms) return "—"; const s2 = Math.floor(ms/1000); return `${String(Math.floor(s2/60)).padStart(2,"0")}:${String(s2%60).padStart(2,"0")}`; };
+
 const ITEM_SHOP = [
   { id:"berry", name:"Razz Berry", emoji:"🍓", sprite:SPRITE_ITEM("razz-berry"), cost:150,  blurb:"Encounter: ×1.45 catch chance for one throw." },
   { id:"great", name:"Great Ball", emoji:"🔵", sprite:SPRITE_ITEM("great-ball"), cost:300,  blurb:"Encounter: ×1.4 catch chance per throw." },
@@ -41,6 +85,7 @@ const BALL_TYPES = {
   poke:  { name:"Poké Ball",  mult:1.0, item:null },
   great: { name:"Great Ball", mult:1.4, item:"great" },
   ultra: { name:"Ultra Ball", mult:1.9, item:"ultra" },
+  master:{ name:"Master Ball", mult:999, item:"master" },
 };
 const SAVE_KEY = "pokeclicker-save-v1";
 const COST_GROWTH = 1.15;
@@ -174,6 +219,14 @@ const ACHIEVEMENTS = [
   { id:"egg-1",        icon:"🐣", name:"Daycare Graduate",      desc:"Hatch a Mystery Egg.",                 test:s=>(s.eggsHatched||0)>=1 },
   { id:"dex-25",       icon:"📚", name:"Professor's Pride",     desc:"Register 25 unique species.",          test:s=>Object.keys(s.pokedex).length>=25 },
   { id:"dex-all",      icon:"🌈", name:"Living Pokédex",        desc:"Register every species.",              test:s=>Object.keys(s.pokedex).length>=WILD_POKEMON.length },
+  { id:"event-10",     icon:"🌍", name:"Citizen of the World",  desc:"Witness 10 world events.",             test:s=>(s.eventsSeen||0)>=10 },
+  { id:"rocket-3",     icon:"🚀", name:"Rocket Repellent",      desc:"Repel 3 Team Rocket attacks.",         test:s=>(s.rocketWins||0)>=3 },
+  { id:"snorlax-1",    icon:"💤", name:"Alarm Clock",           desc:"Move a blocking Snorlax.",             test:s=>(s.snorlaxMoved||0)>=1 },
+  { id:"bred-1",       icon:"💕", name:"Matchmaker",            desc:"Breed a Pokémon at the Daycare.",      test:s=>(s.eggsBred||0)>=1 },
+  { id:"jackpot-1",    icon:"🎰", name:"Jackpot!",              desc:"Hit the slot jackpot.",                test:s=>(s.slots&&s.slots.jackpots)>=1 },
+  { id:"speedrun-1",   icon:"⏱️", name:"Speed Demon",           desc:"Complete a $100k speedrun.",           test:s=>(s.speedrun&&s.speedrun.runs)>=1 },
+  { id:"milestone-3",  icon:"🏆", name:"Hall of Famer",         desc:"Claim 3 lifetime milestones.",         test:s=>(s.milestonesClaimed||[]).length>=3 },
+  { id:"nuzlocke-win", icon:"💀", name:"Against All Odds",      desc:"Win a Gym battle in Nuzlocke mode.",   test:s=>(s.nuzWins||0)>=1 },
 ];
 
 /* ---------- Number formatting ---------- */
@@ -204,20 +257,37 @@ function defaultState(){
     upgrades:[], pokedex:{}, shinyDex:{}, achievements:[], badges:0,
     bonusPct:0, encounters:0, throws:0, excellentThrows:0, shinies:0, legendaryCaught:0,
     revealedBuildings:[], revealedUpgrades:[], muted:false,
-    settings:{ theme:"kanto", particles:true, shake:true, floatText:true, reduceMotion:false, notation:"suffix" },
-    items:{ berry:3, great:0, ultra:0 },
+    settings:{ theme:"kanto", particles:true, shake:true, floatText:true, reduceMotion:false, notation:"suffix", eventFreq:"chill" },
+    items:{ berry:3, great:0, ultra:0, master:0 },
     buddyId:null, maxCombo:0, goldenCaught:0, quests:[], questDay:"", questsDone:0,
     region:"Kanto", leadersDefeated:{}, battleCooldownUntil:0, egg:null, eggsHatched:0, leaderWins:0,
+    mode:"classic", buffs:[], weather:{ id:"clear", until:0 }, lastDaily:"", milestonesClaimed:[],
+    bredDex:{}, eggsBred:0, slots:{ spins:0, won:0, jackpots:0 }, eventsSeen:0, rocketWins:0,
+    snorlaxMoved:0, nuzWins:0, speedrun:{ active:false, startedAt:0, startEarned:0, bestMs:0, runs:0 },
+    settingsExtra:0,
     lastSeen:Date.now(),
   };
 }
 let state = defaultState();
 
 function totalBuildings(s=state){ return BUILDINGS.reduce((a,b)=>a+(s.buildings[b.id]||0),0); }
-function buildingCost(b){ return Math.ceil(b.baseCost * Math.pow(COST_GROWTH, state.buildings[b.id]||0)); }
+function buildingCost(b){ return Math.max(1, Math.ceil(b.baseCost * Math.pow(COST_GROWTH, state.buildings[b.id]||0) * costMult())); }
 function buildingMultiplier(id){ return state.upgrades.includes(UPGRADES.find(u=>u.target===id)?.id) ? 2 : 1; }
 function leaderBonus(){ return Object.keys(state.leadersDefeated).length * 0.02; }
-function globalMultiplier(){ return (1 + state.badges * 0.10) * (1 + state.bonusPct * 0.01) * (1 + leaderBonus()); }
+function pruneBuffs(){ const now = Date.now(); state.buffs = (state.buffs||[]).filter(b=>b.expires > now); }
+function addBuff(kind, mult, seconds, label, icon){
+  pruneBuffs();
+  state.buffs.push({ kind, mult, expires:Date.now() + seconds*1000, label, icon:icon||"✨" });
+  renderEffects(); saveGame();
+}
+function buffMult(kind){
+  pruneBuffs();
+  return state.buffs.reduce((m,b)=> m * ((b.kind===kind || b.kind==="all") ? b.mult : 1), 1);
+}
+function costMult(){ return state.buffs.reduce((m,b)=> m * (b.kind==="sale" ? b.mult : 1), 1); }
+function modeMult(){ return state.mode==="zen" ? 1.2 : state.mode==="nuzlocke" ? 1.25 : 1; }
+function effectiveCatchClicks(){ return state.buffs.some(b=>b.kind==="swarm" && b.expires>Date.now()) ? 50 : CLICKS_PER_CATCH; }
+function globalMultiplier(){ return (1 + state.badges * 0.10) * (1 + state.bonusPct * 0.01) * (1 + leaderBonus()) * modeMult() * currentWeather().dps * buffMult("dps"); }
 function trainerLevel(){ return Math.floor(Math.sqrt(state.lifetime / 500)) + 1; }
 function getDPS(){
   const base = BUILDINGS.reduce((sum,b)=> sum + (state.buildings[b.id]||0) * b.baseDps * buildingMultiplier(b.id), 0);
@@ -230,7 +300,7 @@ function buddyBonus(){
   const base = { common:0.05, uncommon:0.12, rare:0.25, legendary:0.50 }[mon.rarity] || 0.05;
   return base + Math.max(0,(state.pokedex[mon.id]||1)-1) * 0.02 + (state.shinyDex[mon.id] ? 0.10 : 0);
 }
-function clickPower(){ return 1 * (state.upgrades.includes("rare-candy") ? 2 : 1) * (1 + state.badges * 0.10) * (1 + buddyBonus()); }
+function clickPower(){ return 1 * (state.upgrades.includes("rare-candy") ? 2 : 1) * (1 + state.badges * 0.10) * (1 + buddyBonus()) * currentWeather().click * buffMult("click") * (state.mode==="zen" ? 1.1 : 1); }
 function prestigePending(){ return Math.floor(state.runEarned / 1e6); }
 
 function earn(amount){
@@ -267,6 +337,12 @@ function loadGame(){
       quests:Array.isArray(parsed.quests)?parsed.quests:[],
       leadersDefeated:parsed.leadersDefeated && typeof parsed.leadersDefeated==="object"?parsed.leadersDefeated:{},
       egg:parsed.egg && typeof parsed.egg==="object"?parsed.egg:null,
+      buffs:Array.isArray(parsed.buffs)?parsed.buffs:[],
+      weather:parsed.weather && typeof parsed.weather==="object"?parsed.weather:fresh.weather,
+      milestonesClaimed:Array.isArray(parsed.milestonesClaimed)?parsed.milestonesClaimed:[],
+      bredDex:parsed.bredDex && typeof parsed.bredDex==="object"?parsed.bredDex:{},
+      slots:{ ...fresh.slots, ...(parsed.slots||{}) },
+      speedrun:{ ...fresh.speedrun, ...(parsed.speedrun||{}) },
     };
     if (parsed.bonusPct === undefined) state.bonusPct = state.totalCaught; // pre-minigame saves: +1% per catch
     // Offline earnings: 50% rate, capped at 8h
@@ -301,7 +377,9 @@ const els = {
   stat:{ balance:$("stat-balance"), dps:$("stat-dps"), lifetime:$("stat-lifetime"), run:$("stat-run"),
     clicks:$("stat-clicks"), buildings:$("stat-buildings"), caught:$("stat-caught"), dex:$("stat-dex"),
     collection:$("stat-collection-bonus"), badges:$("stat-badges"),
-    seen:$("stat-seen"), throws:$("stat-throws"), excellent:$("stat-excellent"), shinies:$("stat-shinies") },
+    seen:$("stat-seen"), throws:$("stat-throws"), excellent:$("stat-excellent"), shinies:$("stat-shinies"),
+    events:$("stat-events"), rockets:$("stat-rockets"), snorlax:$("stat-snorlax"), bred:$("stat-bred"),
+    slots:$("stat-slots"), speedrun:$("stat-speedrun"), rank:$("stat-rank") },
 };
 function toast(html){
   const t = document.createElement("div"); t.className="toast"; t.innerHTML=html;
@@ -377,6 +455,7 @@ function updateInventoryUI(){
   if (els.invGreat) els.invGreat.textContent = state.items.great||0;
   if (els.invUltra) els.invUltra.textContent = state.items.ultra||0;
   if (els.invBerry) els.invBerry.textContent = state.items.berry||0;
+  const im = $("inv-master"); if (im) im.textContent = state.items.master||0;
 }
 
 function refreshShop(){
@@ -424,7 +503,7 @@ document.querySelectorAll(".qty-btn").forEach(btn=>btn.addEventListener("click",
 function bulkCost(b, qty){
   let total = 0; const owned = state.buildings[b.id]||0;
   for (let i=0;i<qty;i++) total += Math.ceil(b.baseCost * Math.pow(COST_GROWTH, owned+i));
-  return total;
+  return Math.max(qty, Math.ceil(total * costMult()));
 }
 function buyBuilding(id){
   const b = BUILDINGS.find(x=>x.id===id), cost = bulkCost(b, buyQty);
@@ -473,10 +552,10 @@ function updateComboUI(){
 }
 els.ball.addEventListener("pointerdown", e => {
   const now = performance.now();
-  combo = (now - lastClickAt < 1500) ? combo + 1 : 1;
+  combo = (now - lastClickAt < (currentWeather().id==="snow" ? 3000 : 1500)) ? combo + 1 : 1;
   lastClickAt = now;
   state.maxCombo = Math.max(state.maxCombo, combo);
-  const crit = Math.random() < 0.05;
+  const crit = Math.random() < (currentWeather().id==="storm" ? 0.10 : 0.05);
   const gain = clickPower() * comboMult() * (crit ? 10 : 1);
   earn(gain);
   state.totalClicks++; state.clicksSinceCatch++;
@@ -487,12 +566,12 @@ els.ball.addEventListener("pointerdown", e => {
   updateComboUI();
   if (state.buddyId && state.totalClicks % 200 === 0){ state.items.berry++; toast("🐾 Your Buddy found a <b>🍓 Razz Berry</b>!"); updateInventoryUI(); }
   if (state.egg){ state.egg.progress++; if (state.egg.progress >= state.egg.target) hatchEgg(); else if (state.egg.progress % 25 === 0) renderEgg(); }
-  if (state.clicksSinceCatch >= CLICKS_PER_CATCH && !encounter){ state.clicksSinceCatch = 0; startEncounter(); }
+  if (state.clicksSinceCatch >= effectiveCatchClicks() && !encounter){ state.clicksSinceCatch = 0; startEncounter(); }
   checkAchievements(); refreshHUD();
 });
 
 /* ---------- Golden Magikarp event ---------- */
-function scheduleGolden(){ setTimeout(spawnGolden, 45000 + Math.random()*60000); }
+function scheduleGolden(){ setTimeout(spawnGolden, state.mode==="zen" ? 25000 + Math.random()*30000 : 45000 + Math.random()*60000); }
 function spawnGolden(){
   scheduleGolden();
   if (encounter || document.hidden || els.stage.querySelector(".golden-mon")) return;
@@ -522,7 +601,9 @@ const clamp01 = v => Math.min(0.95, Math.max(0.02, v));
 function pickWild(){
   const weights = { ...RARITY_WEIGHTS };
   if (isNight()) weights.legendary *= 2; // moonlight draws out legends
-  const local = WILD_POKEMON.filter(m=>m.regions.includes(state.region));
+  let local = WILD_POKEMON.filter(m=>m.regions.includes(state.region));
+  const seasonIds = SEASON_SPAWNS[currentSeason().id] || [];
+  if (seasonIds.length && Math.random() < 0.25){ const sg = local.filter(m=>seasonIds.includes(m.id)); if (sg.length) local = sg; }
   const pool = Object.entries(weights);
   let roll = Math.random() * pool.reduce((a,[,w])=>a+w,0), rarity = "common";
   for (const [r,w] of pool){ if ((roll -= w) <= 0){ rarity = r; break; } }
@@ -533,7 +614,7 @@ function pickWild(){
 
 function startEncounter(){
   const mon = pickWild();
-  encounter = { ...mon, shiny:Math.random() < SHINY_CHANCE * (isNight() ? 2 : 1), balls:3, berry:false, busy:false, over:false, ringScale:1, ball:"poke", seq:++encounterSeq };
+  encounter = { ...mon, shiny:Math.random() < SHINY_CHANCE * (isNight() ? 2 : 1) * buffMult("shiny"), balls:(state.mode==="nuzlocke" ? 1 : 3), berry:false, bait:false, rock:false, busy:false, over:false, ringScale:1, ball:"poke", seq:++encounterSeq };
   state.encounters++;
   els.wildTitle.textContent = encounter.shiny ? `A wild ✨ ${mon.name} appeared!` : `A wild ${mon.name} appeared!`;
   els.wildRarity.textContent = mon.rarity; els.wildRarity.className = "rarity-badge " + mon.rarity;
@@ -548,6 +629,7 @@ function startEncounter(){
   els.catchMeterLabel.textContent = `${mon.rarity} · base ${Math.round(mon.rate*100)}%`;
   els.battleMsg.textContent = "Time your throw! Press THROW (or Space) when the shrinking ring meets the target circle.";
   els.throwRating.textContent = "";
+  $("btn-bait").disabled = false; $("btn-rock").disabled = false;
   els.throwBall.className = "throw-ball hidden"; els.burst.innerHTML = "";
   setBattleControls(false);
   updateBallsDisplay();
@@ -570,7 +652,7 @@ function setBattleControls(over){
 }
 function startRing(){
   cancelRing();
-  const t0 = performance.now(), PERIOD = 1150;
+  const t0 = performance.now(), PERIOD = currentWeather().id==="wind" ? 1450 : currentWeather().id==="storm" ? 900 : 1150;
   const step = now => {
     if (!encounter || encounter.over || encounter.busy) return;
     const phase = ((now - t0) % PERIOD) / PERIOD;
@@ -616,8 +698,9 @@ async function throwBall(){
     else encounter.ball = "poke";
     updateInventoryUI(); syncBallPicker();
   }
-  const finalP = clamp01(encounter.rate * rating.mult * (encounter.berry ? 1.45 : 1) * (BALL_TYPES[encounter.ball] ? BALL_TYPES[encounter.ball].mult : 1));
-  const shakeP = Math.cbrt(finalP);
+  const safariMult = (encounter.bait ? 1.25 : 1) * (encounter.rock ? 1.5 : 1);
+  const finalP = encounter.ball==="master" ? 1 : clamp01(encounter.rate * rating.mult * (encounter.berry ? 1.45 : 1) * (BALL_TYPES[encounter.ball] ? BALL_TYPES[encounter.ball].mult : 1) * (currentWeather().id==="rain" ? 1.10 : 1) * buffMult("catch") * safariMult);
+  const shakeP = encounter.ball==="master" ? 1 : Math.cbrt(finalP);
   let shakes = 0; while (shakes < 3 && Math.random() < shakeP) shakes++;
   for (let i=0;i<shakes;i++){
     els.throwBall.classList.remove("shaking"); void els.throwBall.offsetWidth; els.throwBall.classList.add("shaking");
@@ -634,7 +717,8 @@ async function throwBall(){
   setTimeout(()=>els.wildSprite.classList.remove("broke-free"), 500);
   jingle([392, 330, 262]);
   if (encounter.balls <= 0) return endEncounter(`${encounter.name} broke free — and you're out of balls! It wanders off…`, seq);
-  if (Math.random() < encounter.flee) return fleeEncounter(seq);
+  const fleeChance = state.mode==="zen" ? 0 : state.mode==="nuzlocke" ? 1 : encounter.flee * (currentWeather().id==="fog" ? 1.5 : 1) * (encounter.bait ? 0.4 : 1) * (encounter.rock ? 1.8 : 1);
+  if (Math.random() < fleeChance) return fleeEncounter(seq);
   encounter.busy = false; setBattleControls(false);
   els.battleMsg.textContent = `${encounter.name} broke free after ${shakes} shake${shakes===1?"":"s"}! ${encounter.balls} ball${encounter.balls===1?"":"s"} left — try again!`;
   checkAchievements(); refreshHUD(); startRing();
@@ -689,14 +773,14 @@ function closeEncounter(){
   refreshHUD();
 }
 function syncBallPicker(){
-  document.querySelectorAll(".ball-choice").forEach(b=>{
+  document.querySelectorAll(".ball-choice[data-ball]").forEach(b=>{
     const type = BALL_TYPES[b.dataset.ball];
     const available = !type.item || (state.items[type.item]||0) > 0;
     b.classList.toggle("active", !!encounter && encounter.ball === b.dataset.ball);
     b.disabled = !available || !!(encounter && encounter.busy);
   });
 }
-document.querySelectorAll(".ball-choice").forEach(b=>b.addEventListener("click", ()=>{
+document.querySelectorAll(".ball-choice[data-ball]").forEach(b=>b.addEventListener("click", ()=>{
   if (!encounter) return;
   encounter.ball = b.dataset.ball; syncBallPicker(); tone(700,.06,"sine",0,.04);
 }));
@@ -709,6 +793,18 @@ els.btnBerry.addEventListener("click", ()=>{
   els.battleMsg.textContent = `You tossed a Razz Berry! ${encounter.name} is distracted — catch chance boosted for your next throw.`;
   setBattleControls(false); tone(880, .12, "triangle", 0, .05);
 });
+$("btn-bait").addEventListener("click", ()=>{
+  if (!encounter || encounter.busy || encounter.bait) return;
+  encounter.bait = true; $("btn-bait").disabled = true;
+  els.battleMsg.textContent = `You tossed bait! ${encounter.name} is munching happily — easier to catch, much less likely to flee.`;
+  tone(760,.12,"triangle",0,.05);
+});
+$("btn-rock").addEventListener("click", ()=>{
+  if (!encounter || encounter.busy || encounter.rock) return;
+  encounter.rock = true; $("btn-rock").disabled = true;
+  els.battleMsg.textContent = `You threw a rock! ${encounter.name} is furious — easier to catch, but it may bolt!`;
+  tone(200,.15,"sawtooth",0,.05);
+});
 els.btnRun.addEventListener("click", ()=>{ if (encounter && !encounter.busy){ toast("🏃 You ran away safely!"); closeEncounter(); } });
 els.btnCloseEncounter.addEventListener("click", closeEncounter);
 document.addEventListener("keydown", e=>{
@@ -719,6 +815,7 @@ document.addEventListener("keydown", e=>{
 
 /* ---------- Pokédex / achievements / news ---------- */
 function renderPokedex(){
+  if (typeof renderBreeding === "function") renderBreeding();
   els.pokedex.innerHTML = WILD_POKEMON.map(mon=>{
     const count = state.pokedex[mon.id]||0, seen = count>0, shiny = !!state.shinyDex[mon.id];
     const src = seen ? ANIM_SPRITE(mon.id, shiny) : SPRITE_POKEMON(mon.id);
@@ -755,8 +852,11 @@ function renderEgg(){
   card.classList.toggle("warm", state.egg.progress/state.egg.target > 0.7);
 }
 function hatchEgg(){
-  const mon = pickWild(), shiny = Math.random() < SHINY_CHANCE;
+  const eggRef = state.egg;
+  const mon = (eggRef && eggRef.speciesId && WILD_POKEMON.find(m=>m.id===eggRef.speciesId)) || pickWild();
+  const shiny = Math.random() < SHINY_CHANCE * (eggRef && eggRef.bred ? 4 : 1);
   state.egg = null; state.eggsHatched++;
+  if (eggRef && eggRef.bred){ state.bredDex[mon.id] = true; }
   const isNew = !state.pokedex[mon.id];
   state.pokedex[mon.id] = (state.pokedex[mon.id]||0) + 1;
   if (shiny){ state.shinyDex[mon.id] = true; state.shinies++; }
@@ -856,6 +956,7 @@ function syncSettingsUI(){
   set("set-shake", state.settings.shake); set("set-floattext", state.settings.floatText);
   set("set-reduce-motion", state.settings.reduceMotion);
   document.querySelectorAll("[data-notation]").forEach(b=>b.classList.toggle("active", state.settings.notation===b.dataset.notation));
+  document.querySelectorAll("[data-events]").forEach(b=>b.classList.toggle("active", (state.settings.eventFreq||"chill")===b.dataset.events));
   document.querySelectorAll("[data-theme-choice]").forEach(b=>b.classList.toggle("active", state.settings.theme===b.dataset.themeChoice));
 }
 $("btn-settings").addEventListener("click", ()=>{ buildSettings(); syncSettingsUI(); els.settingsModal.classList.remove("hidden"); });
@@ -978,6 +1079,7 @@ async function startBattle(leaderId){
     const first = !state.leadersDefeated[leader.id];
     if (first) state.leadersDefeated[leader.id] = true;
     state.leaderWins++;
+    if (state.mode === "nuzlocke") state.nuzWins++;
     const reward = Math.round(leader.reward * (first ? 1 : 0.3) * (1 + state.badges*0.1));
     earn(reward);
     log.innerHTML = `🏆 <b>${leader.aceName} fainted — you beat ${leader.name}!</b> +${fmtMoney(reward)}${first ? " · First win: permanent <b>+2% all earnings</b>!" : ""}`;
@@ -987,6 +1089,18 @@ async function startBattle(leaderId){
   } else {
     log.innerHTML = `💫 <b>${champ.mon.name} fainted!</b> ${leader.name}: "Train up and come back, kid." (30s cooldown)`;
     jingle([392,330,262,196]);
+    if (state.mode === "nuzlocke"){
+      const owned = Object.entries(state.pokedex).filter(([,c])=>c>0);
+      if (owned.length){
+        const [lostId] = owned[Math.floor(Math.random()*owned.length)];
+        const lost = WILD_POKEMON.find(m=>m.id===Number(lostId));
+        state.pokedex[lostId]--;
+        if (state.pokedex[lostId] <= 0){ delete state.pokedex[lostId]; if (state.buddyId===Number(lostId)) state.buddyId = null; }
+        state.bonusPct = Math.max(0, state.bonusPct - 1);
+        log.innerHTML += `<br>💀 <b>Nuzlocke:</b> a ${lost?lost.name:"Pokémon"} was lost in the battle… (-1% collection bonus)`;
+        renderPokedex(); renderBuddy();
+      }
+    }
   }
   $("btn-close-battle").classList.remove("hidden");
   battleBusy = false;
@@ -998,14 +1112,288 @@ $("btn-close-battle").addEventListener("click", ()=>{
   refreshGym();
 });
 
+/* ---------- Active effects ---------- */
+let lastEffectSecond = -1;
+function renderEffects(){
+  const sec = Math.floor(Date.now()/1000);
+  if (sec === lastEffectSecond) return; lastEffectSecond = sec;
+  pruneBuffs();
+  const bar = $("effects-bar"); if (!bar) return;
+  bar.innerHTML = state.buffs.map(b=>`<span class="effect-chip">${b.icon} ${b.label} · ${Math.max(0,Math.ceil((b.expires-Date.now())/1000))}s</span>`).join("");
+}
+
+/* ---------- Weather & seasons ---------- */
+function ensureWeather(announce){
+  const now = Date.now();
+  if (state.weather && state.weather.until > now){
+    const w = currentWeather();
+    const el = $("weather-widget");
+    if (el) el.textContent = `${w.icon} ${w.name} · ${Math.ceil((state.weather.until-now)/60000)}m — ${w.desc}`;
+    document.body.dataset.weather = w.id;
+    return;
+  }
+  const pool = ["clear","clear","sunny","rain","wind","snow","storm","fog"];
+  const id = pool[Math.floor(Math.random()*pool.length)];
+  state.weather = { id, until: now + (240 + Math.random()*180)*1000 };
+  const w = currentWeather();
+  document.body.dataset.weather = w.id;
+  const el = $("weather-widget"); if (el) el.textContent = `${w.icon} ${w.name} — ${w.desc}`;
+  if (announce){ toast(`🌦️ Weather changed: <b>${w.icon} ${w.name}</b> — ${w.desc}`); setNews(`Weather update: ${w.name.toLowerCase()} rolls over the region. ${w.desc}`); }
+}
+function renderSeason(){
+  const season = currentSeason();
+  document.body.dataset.season = season.id;
+  const el = $("season-widget");
+  if (el) el.textContent = `${season.icon} ${season.name} — ${season.note}`;
+}
+setInterval(()=>{ if (state.settings.particles && !document.hidden){
+  let box = document.querySelector(".season-particles");
+  if (!box){ box = document.createElement("div"); box.className="season-particles"; document.body.appendChild(box); }
+  for (let i=0;i<3;i++){
+    const el = document.createElement("i");
+    el.textContent = currentSeason().particle;
+    el.style.left = Math.random()*100 + "vw";
+    el.style.animationDuration = (5 + Math.random()*5) + "s";
+    el.style.fontSize = (14 + Math.random()*16) + "px";
+    box.appendChild(el); setTimeout(()=>el.remove(), 11000);
+  }
+}}, 9000);
+
+/* ---------- Game modes & speedrun ---------- */
+function renderModes(){
+  $("mode-list").innerHTML = MODES.map(m=>`
+    <button type="button" class="mode-card ${state.mode===m.id?"active":""}" data-mode="${m.id}"><b>${m.icon} ${m.name}</b><p>${m.desc}</p></button>`).join("");
+  $("mode-widget").textContent = (MODES.find(m=>m.id===state.mode)||MODES[0]).icon + " " + (MODES.find(m=>m.id===state.mode)||MODES[0]).name + " mode";
+  $("speedrun-box").classList.toggle("hidden", state.mode !== "speedrun");
+  updateSpeedrun();
+}
+$("mode-list").addEventListener("click", e=>{
+  const card = e.target.closest("[data-mode]"); if (!card || card.dataset.mode === state.mode) return;
+  if (card.dataset.mode === "nuzlocke" && !confirm("💀 NUZLOCKE MODE: 1 ball per encounter, anything that breaks free flees, and losing a Gym battle permanently loses a random Pokémon (and 1% collection bonus). +25% DPS. Are you sure?")) return;
+  state.mode = card.dataset.mode;
+  if (state.mode !== "speedrun" && state.speedrun.active) state.speedrun.active = false;
+  toast(`🎮 Mode set to <b>${(MODES.find(m=>m.id===state.mode)||{}).name}</b>!`);
+  renderModes(); checkAchievements(); refreshAll(); saveGame();
+});
+function updateSpeedrun(){
+  const box = $("speedrun-status"), btn = $("btn-speedrun"); if (!box || !btn) return;
+  const sr = state.speedrun;
+  if (sr.active){
+    const gained = state.lifetime - sr.startEarned, left = Math.max(0, 100000 - gained);
+    box.textContent = `⏱️ ${fmtTime(Date.now()-sr.startedAt)} elapsed · ${fmtMoney(gained)} earned · ${fmtMoney(left)} to go!`;
+    btn.textContent = "⏹ Abandon run";
+  } else {
+    box.textContent = sr.bestMs ? `Best: ${fmtTime(sr.bestMs)} · ${sr.runs} completed` : "No completed runs yet. Glory awaits.";
+    btn.textContent = "▶ Start Speedrun";
+  }
+}
+$("btn-speedrun").addEventListener("click", ()=>{
+  const sr = state.speedrun;
+  if (sr.active){ sr.active = false; toast("⏱️ Speedrun abandoned. The clock forgives you."); }
+  else { sr.active = true; sr.startedAt = Date.now(); sr.startEarned = state.lifetime; toast("⏱️ <b>Speedrun started!</b> Earn $100,000 — GO GO GO!"); jingle([523,659,784,1047]); }
+  updateSpeedrun(); saveGame();
+});
+function checkSpeedrun(){
+  const sr = state.speedrun;
+  if (!sr.active) return;
+  updateSpeedrun();
+  if (state.lifetime - sr.startEarned >= 100000){
+    const ms = Date.now() - sr.startedAt;
+    sr.active = false; sr.runs++;
+    if (!sr.bestMs || ms < sr.bestMs) sr.bestMs = ms;
+    earn(10000); state.items.ultra = (state.items.ultra||0) + 1;
+    toast(`⏱️🏁 <b>Speedrun complete in ${fmtTime(ms)}!</b> +$10,000 + 🟡 Ultra Ball!`);
+    jingle([523,659,784,1047,1319,1568]);
+    checkAchievements(); updateSpeedrun(); saveGame();
+  }
+}
+
+/* ---------- Daily gift, milestones, leaderboard ---------- */
+$("btn-daily").addEventListener("click", ()=>{
+  const today = new Date().toDateString();
+  if (state.lastDaily === today){ toast("🎁 You've already claimed today's gift!"); return; }
+  state.lastDaily = today;
+  const money = Math.max(200, Math.round(getDPS()*120 + 200));
+  earn(money); state.items.berry += 2;
+  const season = currentSeason();
+  let extra = "";
+  if (season.id === "winter"){ state.items.ultra++; extra = " + 🟡 Ultra Ball (Delibird special!)"; }
+  if (season.id === "halloween"){ state.items.great++; extra = " + 🔵 Great Ball (not haunted, probably)"; }
+  toast(`🎁 Daily gift: <b>${fmtMoney(money)}</b> + 2 🍓${extra}!`);
+  jingle([659,784,988,1319]);
+  renderDaily(); refreshAll(); saveGame();
+});
+function renderDaily(){
+  const el = $("daily-status"); if (!el) return;
+  el.textContent = state.lastDaily === new Date().toDateString() ? "✔ Claimed today — come back tomorrow!" : "A fresh gift is waiting!";
+  $("btn-daily").disabled = state.lastDaily === new Date().toDateString();
+}
+function checkMilestones(){
+  let changed = false;
+  for (const m of MILESTONES){
+    if (state.lifetime >= m.at && !state.milestonesClaimed.includes(m.at)){
+      state.milestonesClaimed.push(m.at); changed = true;
+      if (m.reward) earn(m.reward);
+      if (m.item) state.items[m.item] = (state.items[m.item]||0) + 1;
+      toast(`🏆 Milestone: <b>${m.label}</b>! ${m.reward?`+${fmtMoney(m.reward)} `:""}${m.item?`+ 1 ${ITEM_SHOP.find(i=>i.id===m.item)?.name || (m.item==="master"?"Master Ball":m.item)}`:""}`);
+      jingle([784,988,1175]);
+    }
+  }
+  if (changed){ renderMilestones(); renderLeaderboard(); checkAchievements(); saveGame(); }
+}
+function renderMilestones(){
+  $("milestone-list").innerHTML = MILESTONES.map(m=>{
+    const done = state.milestonesClaimed.includes(m.at) || state.lifetime >= m.at;
+    return `<div class="milestone ${done?"reached":""}"><span>${done?"🏆":"🔒"} ${m.label}</span><b>${m.reward?fmtMoney(m.reward):""}${m.item?" + item":""}</b></div>`;
+  }).join("");
+}
+function renderLeaderboard(){
+  const rows = [...RIVALS.map(r=>({ name:r.name, at:r.at, you:false })), { name:"⭐ YOU", at:state.lifetime, you:true }]
+    .sort((a,b)=>b.at-a.at);
+  $("leaderboard").innerHTML = rows.map(r=>`<li class="${r.you?"you":(state.lifetime>=r.at?"passed":"")}">${r.name} — ${fmtMoney(r.at)}${r.you?"":""}</li>`).join("");
+  const rank = rows.findIndex(r=>r.you) + 1;
+  if (els.stat.rank) els.stat.rank.textContent = `#${rank} of ${rows.length}`;
+}
+
+/* ---------- Daycare breeding ---------- */
+function renderBreeding(){
+  const caught = WILD_POKEMON.filter(m=>(state.pokedex[m.id]||0) > 0);
+  const opts = caught.length ? caught.map(m=>`<option value="${m.id}">${m.name} (×${state.pokedex[m.id]})</option>`).join("") : `<option value="">— catch something first —</option>`;
+  for (const id of ["breed-a","breed-b"]){
+    const sel = $(id); if (!sel) continue;
+    const prev = sel.value;
+    sel.innerHTML = opts;
+    if (prev && caught.some(m=>m.id===Number(prev))) sel.value = prev;
+  }
+  const st = $("breed-status");
+  if (st) st.textContent = state.egg ? "An egg is already incubating — hatch it first!" : caught.length ? "Choose parents and breed an egg." : "Catch at least one Pokémon to breed.";
+  $("btn-breed").disabled = !!state.egg || !caught.length || state.balance < 2500;
+}
+$("btn-breed").addEventListener("click", ()=>{
+  const a = Number($("breed-a").value), b = Number($("breed-b").value);
+  if (!a || !b || state.egg || state.balance < 2500) return;
+  state.balance -= 2500;
+  const speciesId = Math.random() < 0.5 ? a : b;
+  state.egg = { progress:0, target:300, speciesId, bred:true };
+  state.eggsBred++;
+  const mon = WILD_POKEMON.find(m=>m.id===speciesId);
+  toast(`💕 The Daycare accepted your Pokémon! An egg is incubating — it may hatch into a <b>${mon?mon.name:"?"}</b> (×4 shiny odds)!`);
+  jingle([784,880,1047]);
+  renderEgg(); renderBreeding(); checkAchievements(); refreshAll(); saveGame();
+});
+
+/* ---------- Game Corner slots ---------- */
+const SLOT_SYMBOLS = ["🍒","🍋","⭐","🔔","💎","✨","🟣"];
+let slotsSpinning = false;
+$("btn-slots").addEventListener("click", ()=>{
+  if (slotsSpinning || state.balance < 100) return;
+  slotsSpinning = true; state.balance -= 100; state.slots.spins++;
+  const reels = $("slot-reels"); reels.classList.add("spinning");
+  $("btn-slots").disabled = true; $("slots-status").textContent = "Spinning…";
+  const spinInt = setInterval(()=>{ [...reels.children].forEach(c=>c.textContent = SLOT_SYMBOLS[Math.floor(Math.random()*SLOT_SYMBOLS.length)]); }, 90);
+  setTimeout(()=>{
+    clearInterval(spinInt); reels.classList.remove("spinning");
+    const result = [0,1,2].map(()=> SLOT_SYMBOLS[Math.floor(Math.random()*SLOT_SYMBOLS.length)]);
+    [...reels.children].forEach((c,i)=>c.textContent = result[i]);
+    let payout = 0, msg = "No match. The house Meowth smirks.";
+    const counts = {}; result.forEach(x=>counts[x]=(counts[x]||0)+1);
+    const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+    if (top[1] === 3 && top[0] === "✨"){ payout = 100*100; state.slots.jackpots++; state.items.master = (state.items.master||0)+1; msg = "✨✨✨ JACKPOT!!! +$10,000 and a 🟣 MASTER BALL!"; jingle([523,659,784,1047,1319,1568,2093]); }
+    else if (top[1] === 3){ payout = 100*25; msg = `Three ${top[0]}! +${fmtMoney(payout)}!`; jingle([784,988,1175]); }
+    else if (top[1] === 2){ payout = 100*4; msg = `A pair of ${top[0]}! +${fmtMoney(payout)}.`; tone(880,.15,"triangle",0,.06); }
+    if (payout){ earn(payout); state.slots.won += payout; }
+    $("slots-status").textContent = msg;
+    slotsSpinning = false; $("btn-slots").disabled = false;
+    checkAchievements(); refreshAll(); saveGame();
+  }, 950);
+  refreshHUD();
+});
+
+/* ---------- Random world events ---------- */
+let eventCleanup = null;
+function showEventCard({ cls="", title, body, buttonLabel, onAction, timeoutMs=14000 }){
+  hideEventCard();
+  const card = $("event-card");
+  card.className = "event-card " + cls;
+  card.innerHTML = `<h3>${title}</h3><p>${body}</p>${buttonLabel?`<button type="button" class="btn btn-throw" id="event-action">${buttonLabel}</button> <span class="event-count" id="event-count"></span>`:""}`;
+  const btn = $("event-action");
+  if (btn && onAction) btn.addEventListener("click", ()=>onAction(btn));
+  const deadline = Date.now() + timeoutMs;
+  const countEl = $("event-count");
+  const int = setInterval(()=>{ if (countEl) countEl.textContent = Math.max(0, Math.ceil((deadline-Date.now())/1000)) + "s"; if (Date.now() >= deadline){ const wasRocket = card.dataset.unresolved === "rocket"; hideEventCard(); if (wasRocket) rocketSteal(); } }, 250);
+  eventCleanup = ()=>clearInterval(int);
+  setTimeout(hideEventCard, timeoutMs + 60);
+  state.eventsSeen++;
+}
+function hideEventCard(){ const card = $("event-card"); if (card){ card.classList.add("hidden"); card.dataset.unresolved=""; } if (eventCleanup){ eventCleanup(); eventCleanup=null; } }
+function rocketSteal(){
+  if (state.mode === "zen") return;
+  const stolen = Math.min(state.balance, Math.max(50, getDPS()*45, state.balance*0.05));
+  if (stolen <= 0) return;
+  state.balance = Math.max(0, state.balance - stolen);
+  toast(`🚀 Team Rocket blasted off with <b>${fmtMoney(stolen)}</b>! Should've clicked faster…`);
+  setNews("Team Rocket strikes a local trainer's wallet. Jessie demands a raise.");
+  refreshAll(); saveGame();
+}
+function triggerWorldEvent(){
+  if (document.hidden || encounter || battleBusy) return;
+  const zen = state.mode === "zen";
+  const pool = ["frenzy","meteor","sale","lucky","grant","joy","swarm","snorlax","ditto", ...(zen ? [] : ["rocket"])];
+  const kind = pool[Math.floor(Math.random()*pool.length)];
+  const scale = Math.max(100, getDPS()*60, clickPower()*30);
+  if (kind === "frenzy"){ addBuff("all", 2, 30, "Double Frenzy ×2", "🔥"); showEventCard({ title:"🔥 DOUBLE FRENZY!", body:"Professor Oak spiked the PokéSnacks — <b>ALL earnings ×2 for 30s!</b> Click like you mean it!"}); jingle([660,880,990,1320]); }
+  if (kind === "meteor"){ addBuff("shiny", 5, 60, "Meteor shiny ×5", "☄️"); addBuff("catch", 1.25, 60, "Meteor luck", "☄️"); showEventCard({ title:"☄️ Meteor Shower!", body:"Shooting stars over the region — <b>shiny odds ×5</b> and catch luck up for 60s! Hunt NOW!"}); }
+  if (kind === "sale"){ addBuff("sale", 0.75, 60, "Mart Sale −25%", "🏷️"); showEventCard({ title:"🏷️ PokéMart Flash Sale!", body:"<b>All building prices −25% for 60s!</b> The Silph Co. CEO is crying. Buy buy buy!"}); refreshShop(); }
+  if (kind === "lucky"){ addBuff("catch", 1.35, 90, "Lucky Hour", "🍀"); showEventCard({ title:"🍀 Lucky Hour!", body:"A Chansey crossed your path — <b>catch rates +35% for 90s</b>."}); }
+  if (kind === "grant"){ earn(scale); showEventCard({ title:"🎓 Research Grant!", body:`Professor Oak approved your totally-legit research: <b>+${fmtMoney(scale)}</b>!`}); }
+  if (kind === "joy"){ state.items.berry += 2; state.items.great += 1; showEventCard({ title:"💉 Nurse Joy's Rounds!", body:"Nurse Joy patched up your team and left <b>2 🍓 Razz Berries + 1 🔵 Great Ball</b>."}); updateInventoryUI(); }
+  if (kind === "swarm"){ addBuff("swarm", 1, 120, "Swarm! encounters ×2 rate", "🐝"); showEventCard({ title:"🐝 Pokémon Swarm!", body:"The tall grass is RUSTLING — wild encounters arrive <b>twice as often for 2 minutes</b>!"}); }
+  if (kind === "ditto"){
+    showEventCard({ title:"🟣 Something's Off…", body:"That Pokéball over there has a face. Click it — quickly!", buttonLabel:"Poke the 'Pokéball'!", timeoutMs:10000,
+      onAction:btn=>{ addBuff("catch", 1.5, 45, "Ditto luck", "🟣"); earn(scale/2); hideEventCard(); toast("🟣 It was a <b>Ditto</b>! It giggles and blesses your throws (+50% catch, 45s)."); } });
+  }
+  if (kind === "snorlax"){
+    if (els.stage.querySelector(".snorlax-block")) return;
+    let naps = 8;
+    const el = document.createElement("button");
+    el.type="button"; el.className="snorlax-block"; el.title="A Snorlax is asleep on your Pokéball!";
+    el.innerHTML = imgTag(ANIM_SPRITE(143), "💤", "Sleeping Snorlax");
+    el.addEventListener("click", ()=>{ naps--; tone(300+naps*40,.08,"sine",0,.04); el.style.transform = `translateX(-50%) rotate(${naps%2?6:-6}deg)`;
+      if (naps <= 0){ state.snorlaxMoved++; state.items.berry += 3; earn(scale); el.remove(); toast(`💤 The Snorlax rolled away! +<b>${fmtMoney(scale)}</b> + 3 🍓 for your trouble.`); checkAchievements(); saveGame(); } });
+    els.stage.appendChild(el);
+    showEventCard({ title:"💤 SNORLAX ROADBLOCK!", body:"A Snorlax fell asleep on the path! <b>Click it in the arena (8 pokes)</b> to move it along.", timeoutMs:20000 });
+    setTimeout(()=>el.remove(), 21000);
+  }
+  if (kind === "rocket"){
+    let pokes = 5;
+    showEventCard({ cls:"rocket", title:"🚀 TEAM ROCKET IS STEALING YOUR WALLET!", body:`"Prepare for trouble!" <b>Click 'Blast them off!' ${pokes} times</b> before the timer ends or they make off with some of your PokéDollars!`, buttonLabel:"💥 Blast them off!", timeoutMs:10000,
+      onAction:btn=>{ pokes--; btn.textContent = pokes>0 ? `💥 Blast them off! (${pokes} more!)` : "💥 BLASTING OFF!"; tone(180+pokes*30,.1,"sawtooth",0,.05);
+        if (pokes <= 0){ $("event-card").dataset.unresolved=""; state.rocketWins++; earn(scale/2); hideEventCard(); toast("🚀✨ Team Rocket's blasting off agaaain! Your wallet is safe."); checkAchievements(); saveGame(); } } });
+    $("event-card").dataset.unresolved = "rocket";
+  }
+  checkAchievements(); refreshAll();
+}
+function scheduleWorldEvent(){
+  const freq = state.settings.eventFreq || "chill";
+  if (freq === "off") return;
+  const delay = freq === "chaotic" ? 30000 + Math.random()*35000 : 75000 + Math.random()*70000;
+  setTimeout(()=>{ triggerWorldEvent(); scheduleWorldEvent(); }, delay);
+}
+document.querySelectorAll("[data-events]").forEach(b=>b.addEventListener("click", ()=>{
+  state.settings.eventFreq = b.dataset.events;
+  document.querySelectorAll("[data-events]").forEach(x=>x.classList.toggle("active", x===b));
+  toast(`🌍 World events: <b>${b.dataset.events}</b>`);
+  saveGame();
+}));
+
 /* ---------- HUD refresh ---------- */
 function refreshHUD(){
   const dps = getDPS();
   els.balance.textContent = fmtMoney(state.balance);
   els.dps.textContent = fmtMoney(dps);
   els.clickPower.textContent = fmtMoney(clickPower());
-  els.catchCount.textContent = state.clicksSinceCatch;
-  els.catchBar.style.width = (state.clicksSinceCatch / CLICKS_PER_CATCH * 100) + "%";
+  els.catchBar.style.width = Math.min(100, state.clicksSinceCatch / effectiveCatchClicks() * 100) + "%";
+  const chc = document.querySelector(".catch-progress-head span:last-child"); if (chc) chc.innerHTML = `<b>${state.clicksSinceCatch}</b> / ${effectiveCatchClicks()} clicks`;
   els.stat.balance.textContent = fmtMoney(state.balance);
   els.stat.dps.textContent = fmtRate(dps);
   els.stat.lifetime.textContent = fmtMoney(state.lifetime);
@@ -1019,6 +1407,12 @@ function refreshHUD(){
   els.stat.throws.textContent = formatNumber(state.throws);
   els.stat.excellent.textContent = formatNumber(state.excellentThrows);
   els.stat.shinies.textContent = formatNumber(state.shinies);
+  if (els.stat.events) els.stat.events.textContent = formatNumber(state.eventsSeen);
+  if (els.stat.rockets) els.stat.rockets.textContent = formatNumber(state.rocketWins);
+  if (els.stat.snorlax) els.stat.snorlax.textContent = formatNumber(state.snorlaxMoved);
+  if (els.stat.bred) els.stat.bred.textContent = formatNumber(state.eggsBred);
+  if (els.stat.slots) els.stat.slots.textContent = `${formatNumber(state.slots.spins)} / ${fmtMoney(state.slots.won)}`;
+  if (els.stat.speedrun) els.stat.speedrun.textContent = fmtTime(state.speedrun.bestMs);
   const lvl = trainerLevel(), prevAt = Math.pow(lvl-1,2)*500, nextAt = Math.pow(lvl,2)*500;
   els.trainerLevel.textContent = lvl;
   els.trainerNext.textContent = `next level at ${fmtMoney(nextAt)} lifetime`;
@@ -1059,7 +1453,7 @@ els.btnMute.addEventListener("click", ()=>{ state.muted = !state.muted; syncMute
 
 /* ---------- Main loops ---------- */
 loadGame();
-buildShop(); renderPokedex(); renderAchievements(); renderBuddy(); renderQuests(); buildSettings(); applySettings(); buildRegions(); buildGymList(); renderEgg(); syncMuteBtn(); refreshAll(); rotateNews(); restartNewsTimer(); scheduleGolden();
+buildShop(); renderPokedex(); renderAchievements(); renderBuddy(); renderQuests(); buildSettings(); applySettings(); buildRegions(); buildGymList(); renderEgg(); renderModes(); renderDaily(); renderMilestones(); renderLeaderboard(); renderBreeding(); ensureWeather(false); renderSeason(); syncMuteBtn(); refreshAll(); rotateNews(); restartNewsTimer(); scheduleGolden(); scheduleWorldEvent();
 checkAchievements(); refreshAll();
 
 let lastTick = Date.now();
@@ -1068,7 +1462,8 @@ setInterval(()=>{ // 10 ticks/sec passive income, drift-corrected
   const dps = getDPS();
   if (dps > 0) earn(dps * dt);
   if (combo && performance.now() - lastClickAt > 1500){ combo = 0; updateComboUI(); }
-  if (state.questDay !== new Date().toDateString()) renderQuests();
+  if (state.questDay !== new Date().toDateString()){ renderQuests(); renderDaily(); }
+  ensureWeather(false); renderEffects(); checkMilestones(); checkSpeedrun();
   updateRegions(); refreshGym();
   refreshHUD(); refreshShop(); refreshItems();
 }, 100);
