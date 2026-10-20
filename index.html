@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PokéClicker — Gotta Click 'Em All!</title>
+<meta name="description" content="PokéClicker: a Pokémon-themed incremental clicker game. Click the Pokéball, build your empire, catch and evolve Pokémon!" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://raw.githubusercontent.com" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%23ee1515'/><path d='M4 50a46 46 0 0 0 92 0z' fill='%23fff'/><rect x='4' y='46' width='92' height='8' fill='%23222'/><circle cx='50' cy='50' r='13' fill='%23222'/><circle cx='50' cy='50' r='8' fill='%23fff'/></svg>" />
+</head>
+<body>
+<div id="app" class="app-shell">
+
+  <!-- ===== Header ===== -->
+  <header class="game-header">
+    <div class="logo-wrap">
+      <div class="mini-ball" aria-hidden="true"><span></span></div>
+      <div>
+        <h1>Poké<span>Clicker</span></h1>
+        <p class="tagline">Gotta click 'em all!</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span id="save-indicator" class="save-indicator" title="Autosaves every 10 seconds">● Saved</span>
+      <button id="btn-mute" class="btn btn-ghost" type="button" aria-pressed="false" title="Toggle click pop sound">🔊 Sound</button>
+      <button id="btn-reset" class="btn btn-ghost btn-danger" type="button">↺ Reset Save</button>
+    </div>
+  </header>
+
+  <!-- ===== 3-column layout ===== -->
+  <main class="layout">
+
+    <!-- LEFT: Clicking arena -->
+    <section class="panel arena" aria-label="Clicking arena">
+      <div class="balance-card">
+        <div class="balance-label">PokéDollars</div>
+        <div id="balance" class="balance-value">$0</div>
+        <div class="balance-sub"><span id="dps-display">$0</span> per second</div>
+        <div class="balance-sub dim">per click: <span id="click-power-display">$1</span></div>
+      </div>
+
+      <div id="pokeball-stage" class="pokeball-stage">
+        <div class="stage-ring" aria-hidden="true"></div>
+        <button id="pokeball" class="pokeball" type="button" aria-label="Click to earn PokéDollars">
+          <span class="ball-top"></span>
+          <span class="ball-bottom"></span>
+          <span class="ball-band"></span>
+          <span class="ball-button"></span>
+          <span class="ball-shine"></span>
+        </button>
+        <!-- floating +$ popups are injected here -->
+      </div>
+
+      <div class="catch-progress">
+        <div class="catch-progress-head">
+          <span>🧭 Next wild encounter</span>
+          <span><b id="catch-count">0</b> / 100 clicks</span>
+        </div>
+        <div class="progress-track"><div id="catch-bar" class="progress-fill"></div></div>
+        <p class="hint">Every 100 manual clicks, a wild Pokémon appears — catch it for a permanent <b>+1% DPS</b> each!</p>
+      </div>
+
+      <div id="encounter-banner" class="encounter-banner hidden" role="status"></div>
+    </section>
+
+    <!-- MIDDLE: News & stats -->
+    <section class="panel middle" aria-label="News, stats and collection">
+      <div class="news-ticker" aria-live="polite">
+        <span class="news-badge">NEWS</span>
+        <p id="news-text">Professor Oak is looking for a research assistant who can click really, really fast…</p>
+      </div>
+
+      <h2 class="panel-title">📊 Trainer Stats</h2>
+      <dl class="stats-grid">
+        <div><dt>Current balance</dt><dd id="stat-balance">$0</dd></div>
+        <div><dt>Per second (DPS)</dt><dd id="stat-dps">$0</dd></div>
+        <div><dt>Lifetime earned</dt><dd id="stat-lifetime">$0</dd></div>
+        <div><dt>This run earned</dt><dd id="stat-run">$0</dd></div>
+        <div><dt>Total clicks</dt><dd id="stat-clicks">0</dd></div>
+        <div><dt>Buildings owned</dt><dd id="stat-buildings">0</dd></div>
+        <div><dt>Pokémon caught</dt><dd id="stat-caught">0</dd></div>
+        <div><dt>Pokédex (unique)</dt><dd id="stat-dex">0</dd></div>
+        <div><dt>Collection bonus</dt><dd id="stat-collection-bonus">+0%</dd></div>
+        <div><dt>Gym Badges 🏅</dt><dd id="stat-badges">0</dd></div>
+      </dl>
+
+      <h2 class="panel-title">🏆 Achievements</h2>
+      <ul id="achievements" class="achievements"></ul>
+
+      <h2 class="panel-title">📖 Your Pokédex</h2>
+      <div id="pokedex" class="pokedex">
+        <p class="empty-note" id="pokedex-empty">No Pokémon yet. Keep clicking — something rustles in the tall grass…</p>
+      </div>
+
+      <div class="prestige-card">
+        <h2 class="panel-title">🏅 Prestige — League Challenge</h2>
+        <p>Reset your dollars, buildings and evolution items to earn <b>Gym Badges</b>: 1 badge per <b>$1,000,000</b> earned this run. Each badge grants a permanent <b>+10%</b> to all earnings. Your Pokédex, achievements and lifetime stats are kept.</p>
+        <p class="prestige-pending">Badges available now: <b id="prestige-pending">0</b></p>
+        <button id="btn-prestige" class="btn btn-prestige" type="button">Challenge the League (Prestige)</button>
+      </div>
+    </section>
+
+    <!-- RIGHT: Shop -->
+    <aside class="panel shop" aria-label="Shop">
+      <h2 class="panel-title">🛒 Poké Mart — Buildings</h2>
+      <div id="building-shop" class="shop-list"></div>
+
+      <h2 class="panel-title evolution-title">✨ Evolution Items</h2>
+      <p class="shop-note">One-time purchases. Each stone multiplies one building type ×2 forever (this run).</p>
+      <div id="upgrade-shop" class="shop-list"></div>
+    </aside>
+  </main>
+
+  <footer class="game-footer">
+    Fan-made homage for fun — not affiliated with Nintendo, Game Freak or The Pokémon Company.
+    Sprites © Nintendo / via <a href="https://github.com/PokeAPI/sprites" target="_blank" rel="noopener">PokeAPI/sprites</a>. Autosaves locally every 10s.
+  </footer>
+</div>
+
+<div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
+<script src="js/game.js"></script>
+</body>
+</html>
