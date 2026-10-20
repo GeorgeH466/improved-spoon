@@ -25,6 +25,7 @@
     <div class="header-actions">
       <span id="save-indicator" class="save-indicator" title="Autosaves every 10 seconds">● Saved</span>
       <button id="btn-mute" class="btn btn-ghost" type="button" aria-pressed="false" title="Toggle click pop sound">🔊 Sound</button>
+      <button id="btn-settings" class="btn btn-ghost" type="button">⚙️ Settings</button>
       <button id="btn-reset" class="btn btn-ghost btn-danger" type="button">↺ Reset Save</button>
     </div>
   </header>
@@ -51,6 +52,25 @@
           <span class="ball-shine"></span>
         </button>
         <!-- floating +$ popups are injected here -->
+      </div>
+
+      <div class="buddy-bar">
+        <div id="buddy-display" class="buddy-display"><span class="buddy-empty">No Buddy yet — catch a Pokémon, then pick one from your Pokédex! Your Buddy boosts click power and sniffs out berries. 🐾</span></div>
+        <div class="combo-wrap"><div class="combo-head"><span>🔥 Click Combo</span><b id="combo-count">×1.00</b></div><div class="progress-track"><div id="combo-bar" class="progress-fill combo-fill"></div></div></div>
+      </div>
+
+      <div class="region-box">
+        <div class="region-head"><span>🗺️ Region — where you hunt</span><span id="time-bonus" class="time-bonus"></span></div>
+        <div id="region-list" class="region-list"></div>
+        <p class="hint" id="region-desc"></p>
+      </div>
+
+      <div id="egg-card" class="egg-card hidden">
+        <img id="egg-sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/egg.png" alt="Mystery Egg">
+        <div class="egg-info"><b>🥚 Mystery Egg incubating…</b>
+          <div class="progress-track"><div id="egg-bar" class="progress-fill egg-fill"></div></div>
+          <span id="egg-label" class="buddy-sub">0 / 300 clicks</span>
+        </div>
       </div>
 
       <div class="catch-progress">
@@ -95,6 +115,15 @@
         <div><dt>✨ Shinies caught</dt><dd id="stat-shinies">0</dd></div>
       </dl>
 
+      <h2 class="panel-title">🔬 Professor's Research Tasks</h2>
+      <p class="shop-note">Fresh tasks every day. Claim rewards for PokéDollars and items!</p>
+      <div id="quest-list" class="quest-list"></div>
+
+      <h2 class="panel-title">⚔️ Gym Leader Battles</h2>
+      <p class="shop-note">Battle with your whole collection (power = species rarity × duplicates). First win vs each Leader: permanent <b>+2% all earnings</b>. Repeat wins pay PokéDollars. 30s cooldown.</p>
+      <div class="battle-power">Your party power: <b id="party-power">0</b></div>
+      <div id="gym-list" class="gym-list"></div>
+
       <h2 class="panel-title">🏆 Achievements</h2>
       <ul id="achievements" class="achievements"></ul>
 
@@ -121,6 +150,10 @@
         <button type="button" class="qty-btn" data-qty="100">×100</button>
       </div>
       <div id="building-shop" class="shop-list"></div>
+
+      <h2 class="panel-title evolution-title">🎒 Items (consumables)</h2>
+      <p class="shop-note">Stock up for encounters: better balls multiply catch chance, berries distract wild Pokémon.</p>
+      <div id="item-shop" class="shop-list"></div>
 
       <h2 class="panel-title evolution-title">✨ Evolution Items</h2>
       <p class="shop-note">One-time purchases. Each stone multiplies one building type ×2 forever (this run).</p>
@@ -164,13 +197,64 @@
     <p id="battle-message" class="battle-message" aria-live="polite">Time your throw! Press THROW (or Space) when the shrinking ring meets the target circle.</p>
     <p id="throw-rating" class="throw-rating" aria-live="polite"></p>
 
+    <div class="ball-picker" role="group" aria-label="Choose a ball">
+      <button type="button" class="ball-choice active" data-ball="poke">⚪ Poké Ball <small>×1.0 · free</small></button>
+      <button type="button" class="ball-choice" data-ball="great">🔵 Great Ball <small>×1.4 · <span id="inv-great">0</span> held</small></button>
+      <button type="button" class="ball-choice" data-ball="ultra">🟡 Ultra Ball <small>×1.9 · <span id="inv-ultra">0</span> held</small></button>
+    </div>
     <div class="battle-controls">
       <button id="btn-throw" class="btn btn-throw" type="button">🎯 Throw Ball!</button>
-      <button id="btn-berry" class="btn btn-berry" type="button">🍓 Razz Berry (×1)</button>
+      <button id="btn-berry" class="btn btn-berry" type="button">🍓 Razz Berry (<span id="inv-berry">0</span> held)</button>
       <button id="btn-run" class="btn btn-ghost-dark" type="button">🏃 Run Away</button>
       <button id="btn-close-encounter" class="btn btn-throw hidden" type="button">Continue</button>
     </div>
     <p class="battle-tip">Excellent throws multiply your catch chance. A Razz Berry helps too — if it breaks free, it might flee! <kbd>Space</kbd> throw · <kbd>Esc</kbd> run</p>
+  </div>
+</div>
+
+<!-- ===== Gym battle ===== -->
+<div id="battle-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="gym-battle-title">
+  <div class="battle-card">
+    <h2 id="gym-battle-title">⚔️ Gym Battle!</h2>
+    <div class="vs-scene">
+      <div class="vs-side">
+        <div class="hp-track"><div id="hp-player" class="hp-fill"></div></div>
+        <img id="vs-player-sprite" class="vs-sprite" alt="Your Pokémon">
+        <b id="vs-player-name">Your Pokémon</b>
+      </div>
+      <div class="vs-badge">VS</div>
+      <div class="vs-side">
+        <div class="hp-track"><div id="hp-enemy" class="hp-fill enemy"></div></div>
+        <img id="vs-enemy-sprite" class="vs-sprite flip" alt="Leader's Pokémon">
+        <b id="vs-enemy-name">Leader</b>
+      </div>
+      <div id="vs-float" class="vs-float"></div>
+    </div>
+    <p id="vs-log" class="battle-message" aria-live="polite">The battle begins!</p>
+    <div class="battle-controls"><button id="btn-close-battle" class="btn btn-throw hidden" type="button">Continue</button></div>
+  </div>
+</div>
+
+<!-- ===== Settings ===== -->
+<div id="settings-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+  <div class="battle-card settings-card">
+    <h2 id="settings-title">⚙️ Settings</h2>
+    <h3 class="settings-h">🎨 Theme — choose your region style</h3>
+    <div id="theme-grid" class="theme-grid"></div>
+    <h3 class="settings-h">✨ Effects &amp; sound</h3>
+    <label class="setting-row"><span>🔊 Sound effects</span><input type="checkbox" id="set-sound"></label>
+    <label class="setting-row"><span>✨ Particles &amp; bursts</span><input type="checkbox" id="set-particles"></label>
+    <label class="setting-row"><span>📳 Screen shake on crits</span><input type="checkbox" id="set-shake"></label>
+    <label class="setting-row"><span>💬 Floating +$ text</span><input type="checkbox" id="set-floattext"></label>
+    <label class="setting-row"><span>🐢 Reduce motion (calm animations)</span><input type="checkbox" id="set-reduce-motion"></label>
+    <h3 class="settings-h">🔢 Number format</h3>
+    <div class="ball-picker" role="group" aria-label="Number format">
+      <button type="button" class="notation-choice" data-notation="suffix">1.5M style</button>
+      <button type="button" class="notation-choice" data-notation="full">1,500,000</button>
+      <button type="button" class="notation-choice" data-notation="scientific">1.50e6</button>
+    </div>
+    <div class="battle-controls"><button id="btn-close-settings" class="btn btn-throw" type="button">Done</button></div>
+    <p class="battle-tip">Settings save automatically with your game.</p>
   </div>
 </div>
 
