@@ -59,7 +59,7 @@
           <span><b id="catch-count">0</b> / 100 clicks</span>
         </div>
         <div class="progress-track"><div id="catch-bar" class="progress-fill"></div></div>
-        <p class="hint">Every 100 manual clicks, a wild Pokémon appears — catch it for a permanent <b>+1% DPS</b> each!</p>
+        <p class="hint">Every 100 manual clicks, a wild Pokémon appears! Time your throw in the catching minigame — every catch is a permanent <b>+1% DPS</b> (✨ shiny = +5%)!</p>
       </div>
 
       <div id="encounter-banner" class="encounter-banner hidden" role="status"></div>
@@ -70,6 +70,11 @@
       <div class="news-ticker" aria-live="polite">
         <span class="news-badge">NEWS</span>
         <p id="news-text">Professor Oak is looking for a research assistant who can click really, really fast…</p>
+      </div>
+
+      <div class="trainer-card">
+        <div class="trainer-head"><span>🎓 Trainer Level <b id="trainer-level">1</b></span><span id="trainer-next" class="trainer-next"></span></div>
+        <div class="progress-track trainer-track"><div id="trainer-bar" class="progress-fill trainer-fill"></div></div>
       </div>
 
       <h2 class="panel-title">📊 Trainer Stats</h2>
@@ -84,6 +89,10 @@
         <div><dt>Pokédex (unique)</dt><dd id="stat-dex">0</dd></div>
         <div><dt>Collection bonus</dt><dd id="stat-collection-bonus">+0%</dd></div>
         <div><dt>Gym Badges 🏅</dt><dd id="stat-badges">0</dd></div>
+        <div><dt>Encounters seen</dt><dd id="stat-seen">0</dd></div>
+        <div><dt>Balls thrown</dt><dd id="stat-throws">0</dd></div>
+        <div><dt>Excellent throws</dt><dd id="stat-excellent">0</dd></div>
+        <div><dt>✨ Shinies caught</dt><dd id="stat-shinies">0</dd></div>
       </dl>
 
       <h2 class="panel-title">🏆 Achievements</h2>
@@ -105,6 +114,12 @@
     <!-- RIGHT: Shop -->
     <aside class="panel shop" aria-label="Shop">
       <h2 class="panel-title">🛒 Poké Mart — Buildings</h2>
+      <div class="buy-qty" role="group" aria-label="Buy amount">
+        <span>Buy:</span>
+        <button type="button" class="qty-btn active" data-qty="1">×1</button>
+        <button type="button" class="qty-btn" data-qty="10">×10</button>
+        <button type="button" class="qty-btn" data-qty="100">×100</button>
+      </div>
       <div id="building-shop" class="shop-list"></div>
 
       <h2 class="panel-title evolution-title">✨ Evolution Items</h2>
@@ -117,6 +132,46 @@
     Fan-made homage for fun — not affiliated with Nintendo, Game Freak or The Pokémon Company.
     Sprites © Nintendo / via <a href="https://github.com/PokeAPI/sprites" target="_blank" rel="noopener">PokeAPI/sprites</a>. Autosaves locally every 10s.
   </footer>
+</div>
+
+<!-- ===== Wild encounter catching minigame ===== -->
+<div id="encounter-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="wild-title">
+  <div class="battle-card">
+    <div class="battle-head">
+      <span id="wild-rarity" class="rarity-badge">Common</span>
+      <span id="wild-shiny" class="shiny-badge hidden">✨ SHINY!</span>
+      <span class="battle-balls" title="Balls remaining">Balls: <b id="wild-balls">●●●</b></span>
+    </div>
+    <h2 id="wild-title">A wild Pokémon appeared!</h2>
+
+    <div id="battle-scene" class="battle-scene">
+      <div class="battle-grass" aria-hidden="true"></div>
+      <div id="wild-wrap" class="wild-wrap">
+        <img id="wild-sprite" class="wild-sprite" alt="Wild Pokémon" />
+        <div id="catch-ring" class="catch-ring" aria-hidden="true"></div>
+        <div class="target-ring" aria-hidden="true"></div>
+      </div>
+      <div id="throw-ball" class="throw-ball hidden" aria-hidden="true"><span></span></div>
+      <div id="burst" class="burst" aria-hidden="true"></div>
+    </div>
+
+    <div class="catch-meter">
+      <span>Catch difficulty</span>
+      <div class="progress-track catch-track"><div id="catch-meter-fill" class="progress-fill"></div></div>
+      <span id="catch-meter-label"></span>
+    </div>
+
+    <p id="battle-message" class="battle-message" aria-live="polite">Time your throw! Press THROW (or Space) when the shrinking ring meets the target circle.</p>
+    <p id="throw-rating" class="throw-rating" aria-live="polite"></p>
+
+    <div class="battle-controls">
+      <button id="btn-throw" class="btn btn-throw" type="button">🎯 Throw Ball!</button>
+      <button id="btn-berry" class="btn btn-berry" type="button">🍓 Razz Berry (×1)</button>
+      <button id="btn-run" class="btn btn-ghost-dark" type="button">🏃 Run Away</button>
+      <button id="btn-close-encounter" class="btn btn-throw hidden" type="button">Continue</button>
+    </div>
+    <p class="battle-tip">Excellent throws multiply your catch chance. A Razz Berry helps too — if it breaks free, it might flee! <kbd>Space</kbd> throw · <kbd>Esc</kbd> run</p>
+  </div>
 </div>
 
 <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
