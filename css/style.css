@@ -293,3 +293,59 @@ body.reduce-motion .wild-sprite,body.reduce-motion .mini-ball{animation:none!imp
 .quest-claim{margin-top:.35rem;width:100%}
 .quest.done{border-color:#2e7d32;background:#eaffea}
 .item-count{font-size:1.1rem;font-weight:900;color:#33507a}
+
+/* ============ More themes ============ */
+body[data-theme="sunset"]{--theme-accent:#e91e63;background:radial-gradient(1000px 500px at 85% 0%,#ffd54f 0%,transparent 55%),linear-gradient(160deg,#4a1030,#a53860 55%,#ff8a65)}
+body[data-theme="glacier"]{--theme-accent:#4fc3f7;background:radial-gradient(1000px 500px at 85% 0%,#ffffff 0%,transparent 55%),linear-gradient(160deg,#7ec8e3,#c9ecfa 55%,#e8fbff)}
+body[data-theme="glacier"] .game-header{background:rgba(10,40,60,.88)}
+body[data-theme="rocket"]{--theme-accent:#ff1744;background:radial-gradient(900px 500px at 85% 0%,#b71c1c55 0%,transparent 55%),linear-gradient(160deg,#0a0a0a,#1c0505 55%,#3d0808)}
+body[data-theme="rocket"] .panel{background:rgba(24,16,20,.95);color:#ffe9ec;border-color:#000}
+body[data-theme="rocket"] .stats-grid>div,body[data-theme="rocket"] .dex-entry,body[data-theme="rocket"] .shop-item,body[data-theme="rocket"] .trainer-card,body[data-theme="rocket"] .quest,body[data-theme="rocket"] .achievements li{background:#2a1218;color:#ffe9ec;border-color:#5c1a24}
+body[data-theme="rocket"] .balance-card{color:#1f2430}
+body[data-theme="rocket"] .sub,body[data-theme="rocket"] .shop-note,body[data-theme="rocket"] .hint{color:#e8a0ab}
+
+/* ============ Regions & egg ============ */
+.region-box{max-width:460px;margin:.7rem auto 0;text-align:left}
+.region-head{display:flex;justify-content:space-between;font-size:.88rem;font-weight:800}
+.time-bonus{font-size:.76rem;color:var(--muted)}
+.region-list{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.45rem}
+.region-btn{cursor:pointer;border:2.5px solid var(--dark);border-radius:12px;padding:.35rem .55rem;font:inherit;font-weight:800;font-size:.76rem;color:#fff;box-shadow:0 3px 0 var(--dark);text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.region-btn.active{outline:3px solid var(--yellow);transform:translateY(-2px)}
+.region-btn:disabled{filter:grayscale(1);opacity:.5;cursor:not-allowed;text-shadow:none}
+.egg-card{max-width:460px;margin:.7rem auto 0;display:flex;gap:.8rem;align-items:center;background:#fff8e1;border:2.5px dashed #e6a800;border-radius:14px;padding:.5rem .8rem;text-align:left}
+.egg-card img{width:52px;height:52px;image-rendering:pixelated;animation:eggWobble 1.8s ease-in-out infinite;transform-origin:50% 90%}
+@keyframes eggWobble{0%,100%{transform:rotate(0)}15%{transform:rotate(-9deg)}30%{transform:rotate(8deg)}45%{transform:rotate(-4deg)}60%{transform:rotate(0)}}
+.egg-card.warm img{animation-duration:.7s}
+.egg-info{flex:1;font-size:.88rem}
+.egg-fill{background:linear-gradient(90deg,#ffb300,#ffe082)}
+
+/* encounter scenes per region */
+.battle-scene.region-forest{background:linear-gradient(180deg,#b9f6ca 0 50%,#66bb4a 50% 78%,#3e7d2c 78% 100%)}
+.battle-scene.region-cave{background:linear-gradient(180deg,#4a3f55 0 55%,#5d4a68 55% 78%,#33272e 78% 100%)}
+.battle-scene.region-cave .wild-sprite{filter:drop-shadow(0 10px 8px rgba(0,0,0,.7)) brightness(.92)}
+.battle-scene.region-safari{background:linear-gradient(180deg,#ffe9a8 0 50%,#d9b45b 50% 78%,#a87f35 78% 100%)}
+.battle-scene.region-ocean{background:linear-gradient(180deg,#a5f3fc 0 45%,#38bdf8 45% 78%,#0369a1 78% 100%)}
+.battle-scene.region-victory{background:linear-gradient(180deg,#fecdd3 0 45%,#9f1239 45% 78%,#4c0519 78% 100%)}
+.battle-scene.night{box-shadow:inset 0 0 80px rgba(10,0,60,.55)}
+
+/* ============ Gym battles ============ */
+.battle-power{background:#fff3e0;border:2px solid #ffcc80;border-radius:10px;padding:.45rem .7rem;font-size:.9rem;margin-bottom:.55rem}
+.gym-list{display:grid;gap:.5rem}
+.gym-row{display:grid;grid-template-columns:56px 1fr auto;gap:.6rem;align-items:center;background:#fff;border:2.5px solid var(--dark);border-radius:12px;padding:.45rem .6rem;box-shadow:0 3px 0 var(--dark)}
+.gym-row img{width:50px;height:50px;image-rendering:pixelated}
+.gym-row h4{margin:0;font-size:.88rem}
+.gym-row .sub{font-size:.74rem;color:var(--muted);margin:.1rem 0 0}
+.gym-row.defeated{border-color:#2e7d32;background:#eaffea}
+.vs-scene{position:relative;display:grid;grid-template-columns:1fr auto 1fr;gap:.5rem;align-items:center;background:linear-gradient(180deg,#8fd0ff 0 60%,#7cc24f 60% 100%);border:3px solid var(--dark);border-radius:16px;padding:.8rem .6rem;overflow:hidden}
+.vs-side{display:grid;justify-items:center;gap:.25rem;font-size:.85rem}
+.vs-sprite{width:104px;height:104px;image-rendering:pixelated;transition:transform .18s,opacity .4s;filter:drop-shadow(0 8px 5px rgba(0,0,0,.3))}
+.vs-sprite.flip{transform:scaleX(-1)}
+.vs-sprite.lunge-r{transform:translateX(26px) scale(1.08)}
+.vs-sprite.lunge-l{transform:translateX(-26px) scaleX(-1) scale(1.08)}
+.vs-sprite.fainted{transform:translateY(16px) rotate(80deg);opacity:.25}
+.vs-badge{font-weight:900;font-size:1.2rem;background:var(--red);color:#fff;border:3px solid var(--dark);border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center}
+.hp-track{width:100%;height:12px;background:#00000055;border:2px solid var(--dark);border-radius:99px;overflow:hidden}
+.hp-fill{height:100%;width:100%;background:linear-gradient(90deg,#22c55e,#86efac);transition:width .35s}
+.hp-fill.enemy{background:linear-gradient(90deg,#ef4444,#fca5a5)}
+.vs-float{position:absolute;inset:0;pointer-events:none}
+.vs-float i{position:absolute;font-style:normal;font-weight:900;font-size:1.25rem;color:#b91c1c;text-shadow:1px 1px 0 #fff;animation:floatUp 0.9s ease-out forwards}

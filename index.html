@@ -59,6 +59,20 @@
         <div class="combo-wrap"><div class="combo-head"><span>🔥 Click Combo</span><b id="combo-count">×1.00</b></div><div class="progress-track"><div id="combo-bar" class="progress-fill combo-fill"></div></div></div>
       </div>
 
+      <div class="region-box">
+        <div class="region-head"><span>🗺️ Region — where you hunt</span><span id="time-bonus" class="time-bonus"></span></div>
+        <div id="region-list" class="region-list"></div>
+        <p class="hint" id="region-desc"></p>
+      </div>
+
+      <div id="egg-card" class="egg-card hidden">
+        <img id="egg-sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/egg.png" alt="Mystery Egg">
+        <div class="egg-info"><b>🥚 Mystery Egg incubating…</b>
+          <div class="progress-track"><div id="egg-bar" class="progress-fill egg-fill"></div></div>
+          <span id="egg-label" class="buddy-sub">0 / 300 clicks</span>
+        </div>
+      </div>
+
       <div class="catch-progress">
         <div class="catch-progress-head">
           <span>🧭 Next wild encounter</span>
@@ -104,6 +118,11 @@
       <h2 class="panel-title">🔬 Professor's Research Tasks</h2>
       <p class="shop-note">Fresh tasks every day. Claim rewards for PokéDollars and items!</p>
       <div id="quest-list" class="quest-list"></div>
+
+      <h2 class="panel-title">⚔️ Gym Leader Battles</h2>
+      <p class="shop-note">Battle with your whole collection (power = species rarity × duplicates). First win vs each Leader: permanent <b>+2% all earnings</b>. Repeat wins pay PokéDollars. 30s cooldown.</p>
+      <div class="battle-power">Your party power: <b id="party-power">0</b></div>
+      <div id="gym-list" class="gym-list"></div>
 
       <h2 class="panel-title">🏆 Achievements</h2>
       <ul id="achievements" class="achievements"></ul>
@@ -190,6 +209,29 @@
       <button id="btn-close-encounter" class="btn btn-throw hidden" type="button">Continue</button>
     </div>
     <p class="battle-tip">Excellent throws multiply your catch chance. A Razz Berry helps too — if it breaks free, it might flee! <kbd>Space</kbd> throw · <kbd>Esc</kbd> run</p>
+  </div>
+</div>
+
+<!-- ===== Gym battle ===== -->
+<div id="battle-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="gym-battle-title">
+  <div class="battle-card">
+    <h2 id="gym-battle-title">⚔️ Gym Battle!</h2>
+    <div class="vs-scene">
+      <div class="vs-side">
+        <div class="hp-track"><div id="hp-player" class="hp-fill"></div></div>
+        <img id="vs-player-sprite" class="vs-sprite" alt="Your Pokémon">
+        <b id="vs-player-name">Your Pokémon</b>
+      </div>
+      <div class="vs-badge">VS</div>
+      <div class="vs-side">
+        <div class="hp-track"><div id="hp-enemy" class="hp-fill enemy"></div></div>
+        <img id="vs-enemy-sprite" class="vs-sprite flip" alt="Leader's Pokémon">
+        <b id="vs-enemy-name">Leader</b>
+      </div>
+      <div id="vs-float" class="vs-float"></div>
+    </div>
+    <p id="vs-log" class="battle-message" aria-live="polite">The battle begins!</p>
+    <div class="battle-controls"><button id="btn-close-battle" class="btn btn-throw hidden" type="button">Continue</button></div>
   </div>
 </div>
 
