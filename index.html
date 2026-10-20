@@ -42,6 +42,14 @@
         <div class="balance-sub dim">per click: <span id="click-power-display">$1</span></div>
       </div>
 
+      <div class="world-bar">
+        <span id="weather-widget" class="weather-widget" title="Weather changes every few minutes and affects the hunt">☀️ Clear skies</span>
+        <span id="season-widget" class="weather-widget season"></span>
+        <span id="mode-widget" class="weather-widget mode"></span>
+      </div>
+      <div id="effects-bar" class="effects-bar" aria-live="polite"></div>
+      <div id="event-card" class="event-card hidden"></div>
+
       <div id="pokeball-stage" class="pokeball-stage">
         <div class="stage-ring" aria-hidden="true"></div>
         <button id="pokeball" class="pokeball" type="button" aria-label="Click to earn PokéDollars">
@@ -113,7 +121,47 @@
         <div><dt>Balls thrown</dt><dd id="stat-throws">0</dd></div>
         <div><dt>Excellent throws</dt><dd id="stat-excellent">0</dd></div>
         <div><dt>✨ Shinies caught</dt><dd id="stat-shinies">0</dd></div>
+        <div><dt>🌍 Events witnessed</dt><dd id="stat-events">0</dd></div>
+        <div><dt>🚀 Rocket attacks repelled</dt><dd id="stat-rockets">0</dd></div>
+        <div><dt>💤 Snorlax moved</dt><dd id="stat-snorlax">0</dd></div>
+        <div><dt>💕 Eggs bred</dt><dd id="stat-bred">0</dd></div>
+        <div><dt>🎰 Slot spins / won</dt><dd id="stat-slots">0</dd></div>
+        <div><dt>⏱️ Best speedrun</dt><dd id="stat-speedrun">—</dd></div>
+        <div><dt>🏆 Hall of Fame rank</dt><dd id="stat-rank">—</dd></div>
       </dl>
+
+      <h2 class="panel-title">🎮 Game Mode</h2>
+      <div id="mode-list" class="mode-list"></div>
+      <div id="speedrun-box" class="speedrun-box hidden">
+        <span>⏱️ Speedrun: earn <b>$100,000</b> as fast as you can!</span>
+        <span id="speedrun-status" class="speedrun-status"></span>
+        <button id="btn-speedrun" class="btn btn-throw" type="button">▶ Start Speedrun</button>
+      </div>
+
+      <h2 class="panel-title">🌍 World &amp; Seasons</h2>
+      <div class="world-actions">
+        <button id="btn-daily" class="btn btn-berry" type="button">🎁 Claim Daily Gift</button>
+        <span id="daily-status" class="quest-progress-label"></span>
+      </div>
+      <div id="milestone-list" class="milestone-list"></div>
+      <h3 class="settings-h">🏆 Hall of Fame (local rivals)</h3>
+      <ol id="leaderboard" class="leaderboard"></ol>
+
+      <h2 class="panel-title">💕 Daycare Breeding</h2>
+      <p class="shop-note">Pick two species you've caught. For $2,500 the Daycare produces an egg (300 clicks to hatch) — the baby inherits a parent's species, with ×4 shiny odds!</p>
+      <div class="breed-row">
+        <select id="breed-a" aria-label="Parent A"></select><span>💕</span><select id="breed-b" aria-label="Parent B"></select>
+        <button id="btn-breed" class="btn btn-throw" type="button">Breed ($2,500)</button>
+      </div>
+      <p id="breed-status" class="quest-progress-label"></p>
+
+      <h2 class="panel-title">🎰 Game Corner Slots</h2>
+      <p class="shop-note">Three reels. Match Pokémon for payouts — three ✨ stars is the jackpot!</p>
+      <div class="slots-box">
+        <div id="slot-reels" class="slot-reels"><span>🍒</span><span>⭐</span><span>🍒</span></div>
+        <button id="btn-slots" class="btn btn-throw" type="button">Spin ($100)</button>
+        <span id="slots-status" class="quest-progress-label"></span>
+      </div>
 
       <h2 class="panel-title">🔬 Professor's Research Tasks</h2>
       <p class="shop-note">Fresh tasks every day. Claim rewards for PokéDollars and items!</p>
@@ -201,6 +249,11 @@
       <button type="button" class="ball-choice active" data-ball="poke">⚪ Poké Ball <small>×1.0 · free</small></button>
       <button type="button" class="ball-choice" data-ball="great">🔵 Great Ball <small>×1.4 · <span id="inv-great">0</span> held</small></button>
       <button type="button" class="ball-choice" data-ball="ultra">🟡 Ultra Ball <small>×1.9 · <span id="inv-ultra">0</span> held</small></button>
+      <button type="button" class="ball-choice" data-ball="master">🟣 Master Ball <small>never fails · <span id="inv-master">0</span> held</small></button>
+    </div>
+    <div class="ball-picker" role="group" aria-label="Safari actions">
+      <button type="button" id="btn-bait" class="ball-choice">🍌 Throw Bait <small>calmer: catch↑ flee↓</small></button>
+      <button type="button" id="btn-rock" class="ball-choice">🪨 Throw Rock <small>angrier: catch↑↑ flee↑↑</small></button>
     </div>
     <div class="battle-controls">
       <button id="btn-throw" class="btn btn-throw" type="button">🎯 Throw Ball!</button>
@@ -247,6 +300,12 @@
     <label class="setting-row"><span>📳 Screen shake on crits</span><input type="checkbox" id="set-shake"></label>
     <label class="setting-row"><span>💬 Floating +$ text</span><input type="checkbox" id="set-floattext"></label>
     <label class="setting-row"><span>🐢 Reduce motion (calm animations)</span><input type="checkbox" id="set-reduce-motion"></label>
+    <h3 class="settings-h">🌍 Random world events</h3>
+    <div class="ball-picker" role="group" aria-label="Event frequency">
+      <button type="button" class="events-choice" data-events="off">Off</button>
+      <button type="button" class="events-choice" data-events="chill">Chill</button>
+      <button type="button" class="events-choice" data-events="chaotic">Chaotic 🌪️</button>
+    </div>
     <h3 class="settings-h">🔢 Number format</h3>
     <div class="ball-picker" role="group" aria-label="Number format">
       <button type="button" class="notation-choice" data-notation="suffix">1.5M style</button>
