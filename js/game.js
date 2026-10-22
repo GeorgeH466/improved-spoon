@@ -28,6 +28,9 @@ const REGIONS = [
   { id:"safari",  name:"Safari Zone",    icon:"🦏", unlock:24500,  desc:"Wide savanna — rare grazers everywhere." },
   { id:"ocean",   name:"Seafoam Islands",icon:"🌊", unlock:60500,  desc:"Icy surf and splashing Water-types." },
   { id:"victory", name:"Victory Road",   icon:"🏆", unlock:144500, desc:"The road to the League. Only the strong wander here." },
+  { id:"johto",   name:"Ecruteak City",  icon:"⛩️", unlock:2500000, desc:"Johto's ancient towers. New species roam here." },
+  { id:"lake",    name:"Lake of Rage",   icon:"🔴", unlock:1000000000, desc:"Something red glitters beneath the surface…" },
+  { id:"den",     name:"Dragon's Den",   icon:"🐉", unlock:10000000000000, desc:"Dragon tamers only. The air crackles with power." },
 ];
 const isNight = () => { const h = new Date().getHours(); return h >= 19 || h < 7; };
 
@@ -67,11 +70,16 @@ const MILESTONES = [
   { at:10000000,  label:"Earn $10M lifetime",     reward:500000, item:"ultra" },
   { at:100000000, label:"Earn $100M lifetime",    reward:0,      item:"master" },
   { at:1000000000,label:"Earn $1B lifetime",      reward:0,      item:"master" },
+  { at:1e11, label:"Earn $100B lifetime",   reward:0, item:"master" }, { at:1e13, label:"Earn $10T lifetime",  reward:0, item:"master" },
+  { at:1e15, label:"Earn $1Qa lifetime",    reward:0, item:"master" }, { at:1e17, label:"Earn $100Qa lifetime",reward:0, item:"master" },
+  { at:1e19, label:"Earn $10Qi lifetime",   reward:0, item:"master" }, { at:1e20, label:"Earn $100Qi (1e20!) lifetime", reward:0, item:"master" },
 ];
 const RIVALS = [
   { name:"Bug Catcher Joey", at:5000 }, { name:"Lass Nikki", at:25000 }, { name:"Hiker Bruno", at:80000 },
   { name:"Swimmer Marina", at:250000 }, { name:"Rocket Grunt Marco", at:750000 }, { name:"Ace Trainer Yuki", at:2000000 },
   { name:"Champion Cynthia (fan)", at:8000000 }, { name:"Actual Gary Oak", at:30000000 },
+  { name:"Red (silent)", at:5e9 }, { name:"Cynthia (for real)", at:1e12 }, { name:"Professor Oak", at:1e15 },
+  { name:"The Original One's intern", at:1e18 }, { name:"Arceus (part-time)", at:5e19 },
 ];
 const fmtTime = ms => { if (!ms) return "—"; const s2 = Math.floor(ms/1000); return `${String(Math.floor(s2/60)).padStart(2,"0")}:${String(s2%60).padStart(2,"0")}`; };
 
@@ -102,6 +110,16 @@ const BUILDINGS = [
   { id:"center",   name:"Pokémon Center",    emoji:"🏥", sprite:SPRITE_POKEMON(242),         baseCost:1500000, baseDps:1400, blurb:"Free healing, premium prices." },
   { id:"frontier", name:"Battle Frontier",   emoji:"🏯", sprite:SPRITE_POKEMON(376),         baseCost:18000000, baseDps:8500, blurb:"Seven facilities of pure profit." },
   { id:"hall",     name:"Champion's Hall",   emoji:"👑", sprite:SPRITE_POKEMON(149),         baseCost:250000000, baseDps:47000, blurb:"Only the elite click here." },
+  { id:"hideout",  name:"Rocket Hideout",    emoji:"🚀", sprite:SPRITE_POKEMON(52),          baseCost:4000000000, baseDps:260000, blurb:"Totally legitimate business." },
+  { id:"elite4",   name:"Elite Four Arena",  emoji:"🏛️", sprite:SPRITE_POKEMON(376),         baseCost:65000000000, baseDps:1600000, blurb:"Four chambers of nonstop challengers." },
+  { id:"league",   name:"Pokémon League HQ", emoji:"🏆", sprite:SPRITE_POKEMON(65),          baseCost:1000000000000, baseDps:10000000, blurb:"Where Champions are minted." },
+  { id:"tree",     name:"Battle Tree",       emoji:"🌳", sprite:SPRITE_POKEMON(103),         baseCost:18000000000000, baseDps:65000000, blurb:"Endless battles, endless tickets." },
+  { id:"dome",     name:"World Tournament Dome", emoji:"🌐", sprite:SPRITE_POKEMON(121),     baseCost:300000000000000, baseDps:430000000, blurb:"Every region watches. Every region pays." },
+  { id:"tower",    name:"Space-Time Tower",  emoji:"🕰️", sprite:SPRITE_POKEMON(483),         baseCost:5000000000000000, baseDps:2900000000, blurb:"Dialga handles the accounting across timelines." },
+  { id:"ultra",    name:"Ultra Space Portal", emoji:"🌀", sprite:SPRITE_POKEMON(800),         baseCost:85000000000000000, baseDps:21000000000, blurb:"Tourists from other dimensions welcome." },
+  { id:"dynamax",  name:"Dynamax Stadium",   emoji:"🏟️", sprite:SPRITE_POKEMON(884),         baseCost:1400000000000000000, baseDps:160000000000, blurb:"Bigger Pokémon. Bigger ticket prices." },
+  { id:"tera",     name:"Terastal Observatory", emoji:"💠", sprite:SPRITE_POKEMON(1024),      baseCost:24000000000000000000, baseDps:1200000000000, blurb:"Crystallised profits, refracted daily." },
+  { id:"shrine",   name:"Arceus Shrine",     emoji:"🌌", sprite:SPRITE_POKEMON(493),         baseCost:400000000000000000000, baseDps:9000000000000, blurb:"The Original One accepts your clicks as tribute." },
 ];
 
 const UPGRADES = [ // Evolution items: one-time, ×2 to one building (or clicks)
@@ -160,6 +178,26 @@ const SPECIES_REGIONS = { 25:["Kanto","forest"], 35:["cave","Kanto"], 74:["Kanto
   129:["Kanto","ocean"], 131:["ocean","Kanto"], 133:["Kanto","forest","safari"], 143:["Kanto","safari"], 147:["ocean","victory"], 113:["safari","Kanto"], 137:["victory","Kanto"] };
 WILD_POKEMON.forEach(m => { if (!m.regions) m.regions = SPECIES_REGIONS[m.id] || ["Kanto"]; });
 
+/* Full Gen I (1-151) + Gen II (152-251) national dex */
+const GEN1_NAMES = "Bulbasaur|Ivysaur|Venusaur|Charmander|Charmeleon|Charizard|Squirtle|Wartortle|Blastoise|Caterpie|Metapod|Butterfree|Weedle|Kakuna|Beedrill|Pidgey|Pidgeotto|Pidgeot|Rattata|Raticate|Spearow|Fearow|Ekans|Arbok|Pikachu|Raichu|Sandshrew|Sandslash|Nidoran F|Nidorina|Nidoqueen|Nidoran M|Nidorino|Nidoking|Clefairy|Clefable|Vulpix|Ninetales|Jigglypuff|Wigglytuff|Zubat|Golbat|Oddish|Gloom|Vileplume|Paras|Parasect|Venonat|Venomoth|Diglett|Dugtrio|Meowth|Persian|Psyduck|Golduck|Mankey|Primeape|Growlithe|Arcanine|Poliwag|Poliwhirl|Poliwrath|Abra|Kadabra|Alakazam|Machop|Machoke|Machamp|Bellsprout|Weepinbell|Victreebel|Tentacool|Tentacruel|Geodude|Graveler|Golem|Ponyta|Rapidash|Slowpoke|Slowbro|Magnemite|Magneton|Farfetch'd|Doduo|Dodrio|Seel|Dewgong|Grimer|Muk|Shellder|Cloyster|Gastly|Haunter|Gengar|Onix|Drowzee|Hypno|Krabby|Kingler|Voltorb|Electrode|Exeggcute|Exeggutor|Cubone|Marowak|Hitmonlee|Hitmonchan|Lickitung|Koffing|Weezing|Rhyhorn|Rhydon|Chansey|Tangela|Kangaskhan|Horsea|Seadra|Goldeen|Seaking|Staryu|Starmie|Mr. Mime|Scyther|Jynx|Electabuzz|Magmar|Pinsir|Tauros|Magikarp|Gyarados|Lapras|Ditto|Eevee|Vaporeon|Jolteon|Flareon|Porygon|Omanyte|Omastar|Kabuto|Kabutops|Aerodactyl|Snorlax|Articuno|Zapdos|Moltres|Dratini|Dragonair|Dragonite|Mewtwo|Mew".split("|");
+const GEN2_NAMES = "Chikorita|Bayleef|Meganium|Cyndaquil|Quilava|Typhlosion|Totodile|Croconaw|Feraligatr|Sentret|Furret|Hoothoot|Noctowl|Ledyba|Ledian|Spinarak|Ariados|Crobat|Chinchou|Lanturn|Pichu|Cleffa|Igglybuff|Togepi|Togetic|Natu|Xatu|Mareep|Flaaffy|Ampharos|Bellossom|Marill|Azumarill|Sudowoodo|Politoed|Hoppip|Skiploom|Jumpluff|Aipom|Sunkern|Sunflora|Yanma|Wooper|Quagsire|Espeon|Umbreon|Murkrow|Slowking|Misdreavus|Unown|Wobbuffet|Girafarig|Pineco|Forretress|Dunsparce|Gligar|Steelix|Snubbull|Granbull|Qwilfish|Scizor|Shuckle|Heracross|Sneasel|Teddiursa|Ursaring|Slugma|Magcargo|Swinub|Piloswine|Corsola|Remoraid|Octillery|Delibird|Mantine|Skarmory|Houndour|Houndoom|Kingdra|Phanpy|Donphan|Porygon2|Stantler|Smeargle|Tyrogue|Hitmontop|Smoochum|Elekid|Magby|Miltank|Blissey|Raikou|Entei|Suicune|Larvitar|Pupitar|Tyranitar|Lugia|Ho-Oh|Celebi".split("|");
+const LEGENDARY_IDS = new Set([144,145,146,150,151,243,244,245,249,250,251]);
+const ALL_REGION_IDS = REGIONS.map(r=>r.id);
+{
+  const have = new Set(WILD_POKEMON.map(m=>m.id));
+  const names = [...GEN1_NAMES, ...GEN2_NAMES];
+  for (let id = 1; id <= 251; id++){
+    if (have.has(id)) continue;
+    const h = ((id * 2654435761) >>> 0) % 100;
+    const rarity = LEGENDARY_IDS.has(id) ? "legendary" : h < 52 ? "common" : h < 82 ? "uncommon" : "rare";
+    const rate = { common:0.72, uncommon:0.50, rare:0.30, legendary:0.10 }[rarity];
+    const home = ALL_REGION_IDS[id % ALL_REGION_IDS.length];
+    const regions = [...new Set([home, id <= 151 ? "Kanto" : "johto"])];
+    WILD_POKEMON.push({ id, name:names[id-1], rarity, rate, flee:0.10, regions });
+  }
+  WILD_POKEMON.sort((a,b)=>a.id-b.id);
+}
+
 const GYM_LEADERS = [
   { id:"brock",   name:"Brock",   title:"Rock Solid",   ace:95,  aceName:"Onix",     power:30,   reward:800 },
   { id:"misty",   name:"Misty",   title:"Water Flowers",ace:121, aceName:"Starmie",  power:90,   reward:2400 },
@@ -175,8 +213,48 @@ function partyPower(){
   return Object.entries(state.pokedex).reduce((sum,[id,count])=>{
     const mon = WILD_POKEMON.find(m=>m.id===Number(id));
     return sum + (mon ? RARITY_POWER[mon.rarity]*count : 0);
-  }, 0) + trainerLevel()*5 + state.badges*20;
+  }, 0) + Math.min(trainerLevel(),200)*5 + state.badges*20;
 }
+/* Tier upgrades: owning N of a building unlocks a ×2 for it (Cookie Clicker style) */
+const TIER_THRESHOLDS = [10, 25, 50, 100, 150, 200];
+const TIER_NAMES = ["Reinforced", "Turbo", "Golden", "Plasma", "Quantum", "Mythic"];
+const TIER_UPGRADES = [];
+BUILDINGS.forEach(b=>{
+  TIER_THRESHOLDS.forEach((th, i)=>{
+    TIER_UPGRADES.push({ id:`tier-${b.id}-${th}`, building:b.id, threshold:th,
+      name:`${TIER_NAMES[i]} ${b.name}`, emoji:b.emoji, sprite:b.sprite,
+      cost: Math.ceil(b.baseCost * th * 10 * Math.pow(4, i)), label:`${b.name} ×2 (own ${th})` });
+  });
+});
+/* Click upgrades: total-click milestones, each doubles click power */
+const CLICK_UPGRADES = [
+  { id:"click-1", name:"Macho Brace",      emoji:"💪", sprite:SPRITE_ITEM("macho-brace"),  clicks:100,     cost:600,          label:"Click power ×2" },
+  { id:"click-2", name:"Power Bracer",     emoji:"🥊", sprite:SPRITE_ITEM("power-bracer"), clicks:500,     cost:30000,        label:"Click power ×2" },
+  { id:"click-3", name:"Choice Band",      emoji:"🎗️", sprite:SPRITE_ITEM("choice-band"),  clicks:2000,    cost:1200000,      label:"Click power ×2" },
+  { id:"click-4", name:"Adamant Orb",      emoji:"🔮", sprite:SPRITE_ITEM("adamant-orb"),  clicks:10000,   cost:60000000,     label:"Click power ×2" },
+  { id:"click-5", name:"Soul Dew",         emoji:"💧", sprite:SPRITE_ITEM("soul-dew"),     clicks:50000,   cost:3000000000,   label:"Click power ×2" },
+  { id:"click-6", name:"Meteorite Finger", emoji:"☄️", sprite:SPRITE_ITEM("thick-club"),   clicks:250000,  cost:150000000000, label:"Click power ×2" },
+  { id:"click-7", name:"Arceus' Blessing", emoji:"🌌", sprite:SPRITE_ITEM("azure-flute"),  clicks:1000000, cost:8000000000000,label:"Click power ×2" },
+];
+/* Global research: lifetime milestones, each multiplies ALL production */
+const GLOBAL_UPGRADES = [
+  { id:"glob-1",  name:"Silph Scope Mk.II",  emoji:"🔭", sprite:SPRITE_ITEM("silph-scope"),  lifetime:50000,          cost:100000,           mult:1.3, label:"All production ×1.3" },
+  { id:"glob-2",  name:"Amulet Coin Deluxe", emoji:"🪙", sprite:SPRITE_ITEM("amulet-coin"),  lifetime:500000,         cost:2000000,          mult:1.3, label:"All production ×1.3" },
+  { id:"glob-3",  name:"Exp. Share Network", emoji:"📡", sprite:SPRITE_ITEM("exp-share"),    lifetime:5000000,        cost:40000000,         mult:1.35, label:"All production ×1.35" },
+  { id:"glob-4",  name:"Lucky Incense",      emoji:"🍀", sprite:SPRITE_ITEM("luck-incense"), lifetime:50000000,       cost:800000000,        mult:1.35, label:"All production ×1.35" },
+  { id:"glob-5",  name:"Master Ball Factory",emoji:"🟣", sprite:SPRITE_ITEM("master-ball"),  lifetime:1000000000,     cost:20000000000,      mult:1.4, label:"All production ×1.4" },
+  { id:"glob-6",  name:"Time Gear Array",    emoji:"⚙️", sprite:SPRITE_ITEM("oval-stone"),   lifetime:50000000000,    cost:600000000000,     mult:1.4, label:"All production ×1.4" },
+  { id:"glob-7",  name:"Ultra Wormhole Grid",emoji:"🌀", sprite:SPRITE_ITEM("enigmatic-card"),lifetime:5000000000000,  cost:20000000000000,   mult:1.45, label:"All production ×1.45" },
+  { id:"glob-8",  name:"Creation Engine",    emoji:"🌌", sprite:SPRITE_ITEM("griseous-orb"), lifetime:1000000000000000,cost:1000000000000000, mult:1.5, label:"All production ×1.5" },
+];
+const LEGACY_UPGRADES = [
+  { id:"legacy-click", icon:"👆", name:"Legacy Fingers",  cost:1,   desc:"Click power ×3, forever." },
+  { id:"legacy-dps",   icon:"🏭", name:"Legacy Industry", cost:5,   desc:"All production ×3, forever." },
+  { id:"legacy-start", icon:"💰", name:"Golden Start",    cost:10,  desc:"After prestiging, start with $50,000." },
+  { id:"legacy-catch", icon:"🎣", name:"Legacy Lures",    cost:25,  desc:"Catch chances ×1.25, forever." },
+  { id:"legacy-dex",   icon:"📖", name:"Living Legacy",   cost:60,  desc:"Collection bonus counts double." },
+  { id:"legacy-gold",  icon:"🐟", name:"Golden Legacy",   cost:150, desc:"Golden Magikarp pay ×5." },
+];
 const SHINY_CHANCE = 1/32;
 
 const NEWS = [
@@ -227,6 +305,15 @@ const ACHIEVEMENTS = [
   { id:"speedrun-1",   icon:"⏱️", name:"Speed Demon",           desc:"Complete a $100k speedrun.",           test:s=>(s.speedrun&&s.speedrun.runs)>=1 },
   { id:"milestone-3",  icon:"🏆", name:"Hall of Famer",         desc:"Claim 3 lifetime milestones.",         test:s=>(s.milestonesClaimed||[]).length>=3 },
   { id:"nuzlocke-win", icon:"💀", name:"Against All Odds",      desc:"Win a Gym battle in Nuzlocke mode.",   test:s=>(s.nuzWins||0)>=1 },
+  { id:"rich-1e14",    icon:"🌌", name:"Galactic Tycoon",       desc:"Earn $100T lifetime.",                 test:s=>s.lifetime>=1e14 },
+  { id:"rich-1e17",    icon:"🪐", name:"Universal Economy",     desc:"Earn $100Qa lifetime.",                test:s=>s.lifetime>=1e17 },
+  { id:"rich-1e20",    icon:"♾️", name:"BEYOND MILLIONS (1e20)", desc:"Earn $1e20 lifetime. Your friend owes you lunch.", test:s=>s.lifetime>=1e20 },
+  { id:"vault-10",     icon:"🏦", name:"Upgrade Collector",     desc:"Own 10 Vault upgrades.",               test:s=>s.upgrades.length>=10 },
+  { id:"vault-50",     icon:"💹", name:"Compound Interest",     desc:"Own 50 Vault upgrades.",               test:s=>s.upgrades.length>=50 },
+  { id:"buildings-300",icon:"🏙️", name:"Metropolis",            desc:"Own 300 buildings.",                   test:s=>totalBuildings(s)>=300 },
+  { id:"buildings-1000",icon:"🌆", name:"Ecumenopolis",          desc:"Own 1,000 buildings.",                 test:s=>totalBuildings(s)>=1000 },
+  { id:"dex-100",      icon:"🗂️", name:"Senior Researcher",      desc:"Register 100 unique species.",         test:s=>Object.keys(s.pokedex).length>=100 },
+  { id:"dex-200",      icon:"🌏", name:"World-Class Researcher", desc:"Register 200 unique species.",         test:s=>Object.keys(s.pokedex).length>=200 },
 ];
 
 /* ---------- Number formatting ---------- */
@@ -238,7 +325,7 @@ function formatNumber(n){
   if (notation === "full") return Math.floor(n).toLocaleString("en-US");
   if (n < 1000) return n.toLocaleString("en-US", { maximumFractionDigits: 2 }); // keep $0.1/s visible early game
   if (n < 1e6) return Math.floor(n).toLocaleString("en-US");
-  const units = [[1e15,"Qa"],[1e12,"T"],[1e9,"B"],[1e6,"M"],[1e3,"K"]];
+  const units = [[1e33,"Dc"],[1e30,"No"],[1e27,"Oc"],[1e24,"Sp"],[1e21,"Sx"],[1e18,"Qi"],[1e15,"Qa"],[1e12,"T"],[1e9,"B"],[1e6,"M"],[1e3,"K"]];
   for (const [v,u] of units) if (n >= v) {
     const x = n / v;
     return (x >= 100 ? x.toFixed(0) : x >= 10 ? x.toFixed(1) : x.toFixed(2)).replace(/\.0+$|(\.\d*[1-9])0+$/,"$1") + u;
@@ -261,7 +348,7 @@ function defaultState(){
     items:{ berry:3, great:0, ultra:0, master:0 },
     buddyId:null, maxCombo:0, goldenCaught:0, quests:[], questDay:"", questsDone:0,
     region:"Kanto", leadersDefeated:{}, battleCooldownUntil:0, egg:null, eggsHatched:0, leaderWins:0,
-    mode:"classic", buffs:[], weather:{ id:"clear", until:0 }, lastDaily:"", milestonesClaimed:[],
+    mode:"classic", buffs:[], weather:{ id:"clear", until:0 }, lastDaily:"", milestonesClaimed:[], legacyUpgrades:[],
     bredDex:{}, eggsBred:0, slots:{ spins:0, won:0, jackpots:0 }, eventsSeen:0, rocketWins:0,
     snorlaxMoved:0, nuzWins:0, speedrun:{ active:false, startedAt:0, startEarned:0, bestMs:0, runs:0 },
     settingsExtra:0,
@@ -272,7 +359,14 @@ let state = defaultState();
 
 function totalBuildings(s=state){ return BUILDINGS.reduce((a,b)=>a+(s.buildings[b.id]||0),0); }
 function buildingCost(b){ return Math.max(1, Math.ceil(b.baseCost * Math.pow(COST_GROWTH, state.buildings[b.id]||0) * costMult())); }
-function buildingMultiplier(id){ return state.upgrades.includes(UPGRADES.find(u=>u.target===id)?.id) ? 2 : 1; }
+function buildingMultiplier(id){
+  let mult = state.upgrades.includes(UPGRADES.find(u=>u.target===id)?.id) ? 2 : 1;
+  for (const t of TIER_UPGRADES) if (t.building===id && state.upgrades.includes(t.id)) mult *= 2;
+  return mult;
+}
+function clickTierMult(){ return Math.pow(2, CLICK_UPGRADES.filter(u=>state.upgrades.includes(u.id)).length); }
+function globalUpgradeMult(){ return GLOBAL_UPGRADES.reduce((m,u)=> m * (state.upgrades.includes(u.id) ? u.mult : 1), 1); }
+function legacyHas(id){ return state.legacyUpgrades.includes(id); }
 function leaderBonus(){ return Object.keys(state.leadersDefeated).length * 0.02; }
 function pruneBuffs(){ const now = Date.now(); state.buffs = (state.buffs||[]).filter(b=>b.expires > now); }
 function addBuff(kind, mult, seconds, label, icon){
@@ -287,7 +381,7 @@ function buffMult(kind){
 function costMult(){ return state.buffs.reduce((m,b)=> m * (b.kind==="sale" ? b.mult : 1), 1); }
 function modeMult(){ return state.mode==="zen" ? 1.2 : state.mode==="nuzlocke" ? 1.25 : 1; }
 function effectiveCatchClicks(){ return state.buffs.some(b=>b.kind==="swarm" && b.expires>Date.now()) ? 50 : CLICKS_PER_CATCH; }
-function globalMultiplier(){ return (1 + state.badges * 0.10) * (1 + state.bonusPct * 0.01) * (1 + leaderBonus()) * modeMult() * currentWeather().dps * buffMult("dps"); }
+function globalMultiplier(){ return (1 + state.badges * 0.10) * (1 + state.bonusPct * (legacyHas("legacy-dex") ? 0.02 : 0.01)) * (1 + leaderBonus()) * modeMult() * currentWeather().dps * buffMult("dps") * globalUpgradeMult() * (legacyHas("legacy-dps") ? 3 : 1); }
 function trainerLevel(){ return Math.floor(Math.sqrt(state.lifetime / 500)) + 1; }
 function getDPS(){
   const base = BUILDINGS.reduce((sum,b)=> sum + (state.buildings[b.id]||0) * b.baseDps * buildingMultiplier(b.id), 0);
@@ -300,7 +394,7 @@ function buddyBonus(){
   const base = { common:0.05, uncommon:0.12, rare:0.25, legendary:0.50 }[mon.rarity] || 0.05;
   return base + Math.max(0,(state.pokedex[mon.id]||1)-1) * 0.02 + (state.shinyDex[mon.id] ? 0.10 : 0);
 }
-function clickPower(){ return 1 * (state.upgrades.includes("rare-candy") ? 2 : 1) * (1 + state.badges * 0.10) * (1 + buddyBonus()) * currentWeather().click * buffMult("click") * (state.mode==="zen" ? 1.1 : 1); }
+function clickPower(){ return 1 * (state.upgrades.includes("rare-candy") ? 2 : 1) * (1 + state.badges * 0.10) * (1 + buddyBonus()) * currentWeather().click * buffMult("click") * (state.mode==="zen" ? 1.1 : 1) * clickTierMult() * (legacyHas("legacy-click") ? 3 : 1); }
 function prestigePending(){ return Math.floor(state.runEarned / 1e6); }
 
 function earn(amount){
@@ -343,6 +437,7 @@ function loadGame(){
       bredDex:parsed.bredDex && typeof parsed.bredDex==="object"?parsed.bredDex:{},
       slots:{ ...fresh.slots, ...(parsed.slots||{}) },
       speedrun:{ ...fresh.speedrun, ...(parsed.speedrun||{}) },
+      legacyUpgrades:Array.isArray(parsed.legacyUpgrades)?parsed.legacyUpgrades:[],
     };
     if (parsed.bonusPct === undefined) state.bonusPct = state.totalCaught; // pre-minigame saves: +1% per catch
     // Offline earnings: 50% rate, capped at 8h
@@ -372,7 +467,7 @@ const els = {
   catchMeterFill:$("catch-meter-fill"), catchMeterLabel:$("catch-meter-label"),
   btnThrow:$("btn-throw"), btnBerry:$("btn-berry"), btnRun:$("btn-run"), btnCloseEncounter:$("btn-close-encounter"),
   buddyDisplay:$("buddy-display"), comboCount:$("combo-count"), comboBar:$("combo-bar"),
-  questList:$("quest-list"), itemShop:$("item-shop"), settingsModal:$("settings-modal"),
+  questList:$("quest-list"), itemShop:$("item-shop"), settingsModal:$("settings-modal"), vaultGrid:$("vault-grid"),
   invGreat:$("inv-great"), invUltra:$("inv-ultra"), invBerry:$("inv-berry"),
   stat:{ balance:$("stat-balance"), dps:$("stat-dps"), lifetime:$("stat-lifetime"), run:$("stat-run"),
     clicks:$("stat-clicks"), buildings:$("stat-buildings"), caught:$("stat-caught"), dex:$("stat-dex"),
@@ -493,6 +588,65 @@ function refreshShop(){
   }
 }
 
+/* ---------- Upgrade Vault (tiers / click / global) ---------- */
+const VAULT = [
+  ...TIER_UPGRADES.map(u=>({ ...u, kind:"tier",  req:()=> (state.buildings[u.building]||0) >= u.threshold, reqLabel:`Own ${u.threshold} ${BUILDINGS.find(b=>b.id===u.building).name}` })),
+  ...CLICK_UPGRADES.map(u=>({ ...u, kind:"click", req:()=> state.totalClicks >= u.clicks, reqLabel:`${formatNumber(u.clicks)} total clicks` })),
+  ...GLOBAL_UPGRADES.map(u=>({ ...u, kind:"global", req:()=> state.lifetime >= u.lifetime, reqLabel:`${fmtMoney(u.lifetime)} lifetime` })),
+];
+const vaultRows = {};
+function buildVault(){
+  for (const u of VAULT){
+    const btn = document.createElement("button");
+    btn.type="button"; btn.className="vault-tile hidden"; btn.id=`vault-${u.id}`;
+    btn.innerHTML = `${imgTag(u.sprite,u.emoji,u.name)}<b>${u.name}</b><small>${u.label}</small><small data-role="req"></small><span data-role="cost"></span>`;
+    btn.addEventListener("click", ()=>buyVault(u.id));
+    els.vaultGrid.appendChild(btn);
+    vaultRows[u.id] = { root:btn, req:btn.querySelector('[data-role="req"]'), cost:btn.querySelector('[data-role="cost"]') };
+  }
+}
+function refreshVault(){
+  for (const u of VAULT){
+    const row = vaultRows[u.id]; if (!row) continue;
+    const owned = state.upgrades.includes(u.id);
+    row.root.classList.toggle("hidden", owned);
+    if (owned) continue;
+    const reqMet = u.req();
+    row.req.textContent = reqMet ? "✔ Ready" : `🔒 ${u.reqLabel}`;
+    row.cost.textContent = fmtMoney(u.cost);
+    const canBuy = reqMet && state.balance >= u.cost;
+    row.root.disabled = !canBuy;
+    row.root.classList.toggle("cant-afford", !canBuy);
+    row.root.classList.toggle("ready", reqMet);
+  }
+}
+function buyVault(id){
+  const u = VAULT.find(x=>x.id===id);
+  if (!u || state.upgrades.includes(id) || !u.req() || state.balance < u.cost) return;
+  state.balance -= u.cost; state.upgrades.push(id);
+  toast(`🏦 <b>${u.name}</b> purchased! ${u.label}.`);
+  jingle([784,988,1175]);
+  checkAchievements(); refreshAll(); saveGame();
+}
+/* ---------- Legacy shop (spend prestige badges) ---------- */
+function renderLegacy(){
+  const box = $("legacy-list"); if (!box) return;
+  box.innerHTML = LEGACY_UPGRADES.map(u=>{
+    const owned = legacyHas(u.id);
+    return `<div class="milestone ${owned?"reached":""}"><span>${u.icon} <b>${u.name}</b> — ${u.desc}</span>
+      ${owned?'<b>✔ Owned</b>':`<button type="button" class="btn btn-prestige" data-legacy="${u.id}" ${state.badges < u.cost?"disabled":""}>Buy · ${u.cost} 🏅</button>`}</div>`;
+  }).join("");
+}
+$("legacy-list").addEventListener("click", e=>{
+  const btn = e.target.closest("[data-legacy]"); if (!btn) return;
+  const u = LEGACY_UPGRADES.find(x=>x.id===btn.dataset.legacy);
+  if (!u || legacyHas(u.id) || state.badges < u.cost) return;
+  if (!confirm(`Spend ${u.cost} Gym Badges on ${u.name}? (Unspent badges each give +10% earnings — this is permanent.)`)) return;
+  state.badges -= u.cost; state.legacyUpgrades.push(u.id);
+  toast(`🌟 Legacy upgrade: <b>${u.name}</b>!`);
+  renderLegacy(); checkAchievements(); refreshAll(); saveGame();
+});
+
 /* ---------- Purchases ---------- */
 let buyQty = 1;
 document.querySelectorAll(".qty-btn").forEach(btn=>btn.addEventListener("click", ()=>{
@@ -579,7 +733,7 @@ function spawnGolden(){
   el.type="button"; el.className="golden-mon"; el.title="Golden Magikarp! Click it!";
   el.innerHTML = imgTag(ANIM_SPRITE(129, true), "🐟", "Golden Magikarp");
   el.addEventListener("click", ()=>{
-    const reward = Math.max(100, getDPS()*60, clickPower()*25);
+    const reward = Math.max(100, getDPS()*60, clickPower()*25) * (legacyHas("legacy-gold") ? 5 : 1);
     earn(reward); state.goldenCaught++;
     toast(`🐟✨ Golden Magikarp! +<b>${fmtMoney(reward)}</b>!`);
     jingle([784,988,1175,1568]);
@@ -699,7 +853,7 @@ async function throwBall(){
     updateInventoryUI(); syncBallPicker();
   }
   const safariMult = (encounter.bait ? 1.25 : 1) * (encounter.rock ? 1.5 : 1);
-  const finalP = encounter.ball==="master" ? 1 : clamp01(encounter.rate * rating.mult * (encounter.berry ? 1.45 : 1) * (BALL_TYPES[encounter.ball] ? BALL_TYPES[encounter.ball].mult : 1) * (currentWeather().id==="rain" ? 1.10 : 1) * buffMult("catch") * safariMult);
+  const finalP = encounter.ball==="master" ? 1 : clamp01(encounter.rate * rating.mult * (encounter.berry ? 1.45 : 1) * (BALL_TYPES[encounter.ball] ? BALL_TYPES[encounter.ball].mult : 1) * (currentWeather().id==="rain" ? 1.10 : 1) * buffMult("catch") * safariMult * (legacyHas("legacy-catch") ? 1.25 : 1));
   const shakeP = encounter.ball==="master" ? 1 : Math.cbrt(finalP);
   let shakes = 0; while (shakes < 3 && Math.random() < shakeP) shakes++;
   for (let i=0;i<shakes;i++){
@@ -814,13 +968,26 @@ document.addEventListener("keydown", e=>{
 });
 
 /* ---------- Pokédex / achievements / news ---------- */
+let dexSearch = "", dexFilter = "all";
+$("dex-search").addEventListener("input", e=>{ dexSearch = e.target.value.toLowerCase(); renderPokedex(); });
+$("dex-filter").addEventListener("change", e=>{ dexFilter = e.target.value; renderPokedex(); });
 function renderPokedex(){
   if (typeof renderBreeding === "function") renderBreeding();
-  els.pokedex.innerHTML = WILD_POKEMON.map(mon=>{
+  const label = $("dex-count-label"); if (label) label.textContent = `(${Object.keys(state.pokedex).length}/${WILD_POKEMON.length} caught)`;
+  const list = WILD_POKEMON.filter(mon=>{
+    const seen = (state.pokedex[mon.id]||0) > 0;
+    if (dexSearch && !mon.name.toLowerCase().includes(dexSearch) && String(mon.id) !== dexSearch) return false;
+    if (dexFilter === "caught") return seen;
+    if (dexFilter === "missing") return !seen;
+    if (dexFilter === "shiny") return !!state.shinyDex[mon.id];
+    if (["common","uncommon","rare","legendary"].includes(dexFilter)) return mon.rarity === dexFilter;
+    return true;
+  });
+  els.pokedex.innerHTML = list.length ? list.map(mon=>{
     const count = state.pokedex[mon.id]||0, seen = count>0, shiny = !!state.shinyDex[mon.id];
     const src = seen ? ANIM_SPRITE(mon.id, shiny) : SPRITE_POKEMON(mon.id);
-    return `<div class="dex-entry ${seen?"":"unseen"} ${shiny?"shiny":""}">${count>1?`<span class="dex-count">×${count}</span>`:""}${imgTag(src,"❔",seen?mon.name:"Unknown")}<div>${seen?mon.name:"???"}${shiny?" ✨":""}</div><div class="rarity-tag">${mon.rarity}</div>${seen?`<button type="button" class="dex-buddy-btn ${state.buddyId===mon.id?"is-buddy":""}" data-buddy="${mon.id}">${state.buddyId===mon.id?"🐾 Buddy":"Set Buddy"}</button>`:""}</div>`;
-  }).join("");
+    return `<div class="dex-entry ${seen?"":"unseen"} ${shiny?"shiny":""}">${count>1?`<span class="dex-count">×${count}</span>`:""}${imgTag(src,"❔",seen?mon.name:"Unknown")}<div>${seen?mon.name:"???"}${shiny?" ✨":""}</div><div class="rarity-tag">#${mon.id} · ${mon.rarity}</div>${seen?`<button type="button" class="dex-buddy-btn ${state.buddyId===mon.id?"is-buddy":""}" data-buddy="${mon.id}">${state.buddyId===mon.id?"🐾 Buddy":"Set Buddy"}</button>`:""}</div>`;
+  }).join("") : `<p class="empty-note">No species match that filter.</p>`;
 }
 function renderAchievements(){
   els.achievements.innerHTML = ACHIEVEMENTS.map(a=>{
@@ -981,7 +1148,7 @@ document.querySelectorAll("[data-notation]").forEach(b=>b.addEventListener("clic
 /* ---------- Regions ---------- */
 function buildRegions(){
   $("region-list").innerHTML = REGIONS.map(r=>`
-    <button type="button" class="region-btn" data-region="${r.id}" style="background:linear-gradient(160deg, ${ {Kanto:"#43a047",forest:"#2e7d32",cave:"#5e35b1",safari:"#c08a2d",ocean:"#0288d1",victory:"#b71c3f"}[r.id] }, #2228)">${r.icon} ${r.name}</button>`).join("");
+    <button type="button" class="region-btn" data-region="${r.id}" style="background:linear-gradient(160deg, ${ {Kanto:"#43a047",forest:"#2e7d32",cave:"#5e35b1",safari:"#c08a2d",ocean:"#0288d1",victory:"#b71c3f",johto:"#8e6e00",lake:"#c62828",den:"#4a148c"}[r.id] }, #2228)">${r.icon} ${r.name}</button>`).join("");
   $("region-list").addEventListener("click", e=>{
     const btn = e.target.closest("[data-region]"); if (!btn || btn.disabled) return;
     state.region = btn.dataset.region;
@@ -1030,50 +1197,198 @@ function refreshGym(){
     btn.textContent = state.leadersDefeated[l.id] ? "Rematch" : "Battle!";
   });
 }
-async function startBattle(leaderId){
-  const leader = GYM_LEADERS.find(l=>l.id===leaderId);
-  if (!leader || battleBusy || Date.now() < state.battleCooldownUntil || state.totalCaught <= 0) return;
-  battleBusy = true; refreshGym();
-  const entries = Object.entries(state.pokedex).map(([id,count])=>({ mon:WILD_POKEMON.find(m=>m.id===Number(id)), count })).filter(x=>x.mon);
-  entries.sort((a,b)=>(RARITY_POWER[b.mon.rarity]*b.count) - (RARITY_POWER[a.mon.rarity]*a.count));
-  const champ = (state.buddyId && entries.find(x=>x.mon.id===state.buddyId)) || entries[0];
-  const pSprite = $("vs-player-sprite"), eSprite = $("vs-enemy-sprite");
-  pSprite.src = ANIM_SPRITE(champ.mon.id, !!state.shinyDex[champ.mon.id]); pSprite.onerror = ()=>{ pSprite.onerror=null; pSprite.src = SPRITE_POKEMON(champ.mon.id); };
-  pSprite.className = "vs-sprite";
-  eSprite.src = ANIM_SPRITE(leader.ace); eSprite.onerror = ()=>{ eSprite.onerror=null; eSprite.src = SPRITE_POKEMON(leader.ace); };
-  eSprite.className = "vs-sprite flip";
-  $("vs-player-name").textContent = `${champ.mon.name} (Lv.${champ.count})`;
-  $("vs-enemy-name").textContent = `${leader.name}'s ${leader.aceName}`;
-  $("gym-battle-title").textContent = `⚔️ You vs ${leader.name}, ${leader.title}!`;
-  $("btn-close-battle").classList.add("hidden");
-  $("battle-modal").classList.remove("hidden");
-  document.body.style.overflow = "hidden";
-  const pPow = partyPower(), ePow = leader.power;
-  let pHP = 100 + pPow * 0.6, eHP = 100 + ePow * 0.6;
-  const pMax = pHP, eMax = eHP, log = $("vs-log"), floatBox = $("vs-float");
-  const setHP = ()=>{ $("hp-player").style.width = Math.max(0,pHP/pMax*100)+"%"; $("hp-enemy").style.width = Math.max(0,eHP/eMax*100)+"%"; };
-  const dmgFloat = (txt, left)=>{ if (!state.settings.particles) return; const i=document.createElement("i"); i.textContent=txt; i.style.left=left; i.style.top="30%"; floatBox.appendChild(i); setTimeout(()=>i.remove(),950); };
-  setHP(); log.textContent = `${leader.name}: "Think you can take my ${leader.aceName}? Let's see!"`;
-  jingle([440,440,440,587]);
-  let playerTurn = true;
-  while (pHP > 0 && eHP > 0){
-    await wait(520);
-    if (playerTurn){
-      const dmg = Math.max(4, eMax * (Math.min(0.9, Math.max(0.05, pPow/(pPow+ePow))) * (0.28 + Math.random()*0.22)));
-      eHP -= dmg; pSprite.classList.add("lunge-r"); dmgFloat("-"+formatNumber(dmg), "62%"); tone(220,.12,"square",0,.05);
-      log.textContent = `${champ.mon.name} attacks for ${formatNumber(dmg)}!`;
-    } else {
-      const dmg = Math.max(4, pMax * (Math.min(0.9, Math.max(0.05, ePow/(pPow+ePow))) * (0.28 + Math.random()*0.22)));
-      pHP -= dmg; eSprite.classList.add("lunge-l"); dmgFloat("-"+formatNumber(dmg), "22%"); tone(160,.12,"square",0,.05);
-      log.textContent = `${leader.aceName} hits back for ${formatNumber(dmg)}!`;
-    }
-    setHP();
-    await wait(200);
-    pSprite.classList.remove("lunge-r"); eSprite.classList.remove("lunge-l");
-    playerTurn = !playerTurn;
+/* ================= FULL TURN-BASED BATTLES =================
+   Choose moves, type matchups, STAB, crits, accuracy, status,
+   stat stages, priority, potions and switching — the works. */
+const TYPE_LIST = ["Normal","Fire","Water","Electric","Grass","Ice","Fighting","Poison","Ground","Flying","Psychic","Bug","Rock","Ghost","Dragon","Dark","Steel","Fairy"];
+const TYPE_CHART = { // attacking -> defending multipliers (unlisted = 1)
+  Fire:{Grass:2,Ice:2,Bug:2,Steel:2,Fire:.5,Water:.5,Rock:.5,Dragon:.5}, Water:{Fire:2,Ground:2,Rock:2,Water:.5,Grass:.5,Dragon:.5},
+  Electric:{Water:2,Flying:2,Electric:.5,Grass:.5,Dragon:.5,Ground:0}, Grass:{Water:2,Ground:2,Rock:2,Fire:.5,Grass:.5,Poison:.5,Flying:.5,Bug:.5,Dragon:.5,Steel:.5},
+  Ice:{Grass:2,Ground:2,Flying:2,Dragon:2,Fire:.5,Water:.5,Ice:.5,Steel:.5}, Fighting:{Normal:2,Ice:2,Rock:2,Dark:2,Steel:2,Poison:.5,Flying:.5,Psychic:.5,Bug:.5,Fairy:.5,Ghost:0},
+  Poison:{Grass:2,Fairy:2,Poison:.5,Ground:.5,Rock:.5,Ghost:.5,Steel:0}, Ground:{Fire:2,Electric:2,Poison:2,Rock:2,Steel:2,Grass:.5,Bug:.5,Flying:0},
+  Flying:{Grass:2,Fighting:2,Bug:2,Electric:.5,Rock:.5,Steel:.5}, Psychic:{Fighting:2,Poison:2,Psychic:.5,Steel:.5,Dark:0},
+  Bug:{Grass:2,Psychic:2,Dark:2,Fire:.5,Fighting:.5,Poison:.5,Flying:.5,Ghost:.5,Steel:.5,Fairy:.5}, Rock:{Fire:2,Ice:2,Flying:2,Bug:2,Fighting:.5,Ground:.5,Steel:.5},
+  Ghost:{Psychic:2,Ghost:2,Dark:.5,Normal:0}, Dragon:{Dragon:2,Steel:.5,Fairy:0}, Dark:{Psychic:2,Ghost:2,Fighting:.5,Dark:.5,Fairy:.5},
+  Steel:{Ice:2,Rock:2,Fairy:2,Fire:.5,Water:.5,Electric:.5,Steel:.5}, Fairy:{Fighting:2,Dragon:2,Dark:2,Fire:.5,Poison:.5,Steel:.5},
+  Normal:{Rock:.5,Steel:.5,Ghost:0},
+};
+const typeEff = (moveType, defTypes) => defTypes.reduce((m,t)=> m * ((TYPE_CHART[moveType]||{})[t] ?? 1), 1);
+/* curated types for iconic species; others get a deterministic type so every species can battle */
+const CURATED_TYPES = {1:["Grass","Poison"],2:["Grass","Poison"],3:["Grass","Poison"],4:["Fire"],5:["Fire"],6:["Fire","Flying"],7:["Water"],8:["Water"],9:["Water"],10:["Bug"],12:["Bug","Flying"],13:["Bug","Poison"],15:["Bug","Poison"],16:["Normal","Flying"],18:["Normal","Flying"],19:["Normal"],21:["Normal","Flying"],25:["Electric"],26:["Electric"],27:["Ground"],35:["Fairy"],37:["Fire"],38:["Fire"],39:["Normal","Fairy"],41:["Poison","Flying"],43:["Grass","Poison"],45:["Grass","Poison"],52:["Normal"],54:["Water"],55:["Water"],58:["Fire"],59:["Fire"],60:["Water"],62:["Water","Fighting"],63:["Psychic"],65:["Psychic"],66:["Fighting"],68:["Fighting"],69:["Grass","Poison"],71:["Grass","Poison"],72:["Water","Poison"],74:["Rock","Ground"],76:["Rock","Ground"],77:["Fire"],78:["Fire"],83:["Normal","Flying"],84:["Normal","Flying"],86:["Water"],87:["Water","Ice"],90:["Water"],91:["Water","Ice"],92:["Ghost","Poison"],94:["Ghost","Poison"],95:["Rock","Ground"],98:["Water"],100:["Electric"],101:["Electric"],102:["Grass","Psychic"],104:["Ground"],107:["Fighting"],108:["Normal"],109:["Poison"],110:["Poison"],111:["Ground","Rock"],112:["Ground","Rock"],113:["Normal"],114:["Grass"],115:["Normal"],116:["Water"],117:["Water"],118:["Water"],120:["Water"],121:["Water","Psychic"],122:["Psychic","Fairy"],123:["Bug","Flying"],124:["Ice","Psychic"],125:["Electric"],126:["Fire"],127:["Bug"],128:["Normal"],129:["Water"],130:["Water","Flying"],131:["Water","Ice"],132:["Normal"],133:["Normal"],134:["Water"],135:["Electric"],136:["Fire"],137:["Normal"],142:["Rock","Flying"],143:["Normal"],144:["Ice","Flying"],145:["Electric","Flying"],146:["Fire","Flying"],147:["Dragon"],149:["Dragon","Flying"],150:["Psychic"],151:["Psychic"],152:["Grass"],155:["Fire"],158:["Water"],160:["Water"],169:["Poison","Flying"],172:["Electric"],181:["Electric"],182:["Grass"],196:["Psychic"],197:["Dark"],198:["Dark","Flying"],208:["Steel","Ground"],212:["Bug","Steel"],214:["Bug","Fighting"],229:["Dark","Fire"],230:["Water","Dragon"],241:["Normal"],242:["Normal"],243:["Electric"],244:["Fire"],245:["Water"],246:["Rock","Ground"],248:["Rock","Dark"],249:["Psychic","Flying"],250:["Fire","Flying"],251:["Psychic","Grass"]};
+function speciesTypes(mon){
+  if (CURATED_TYPES[mon.id]) return CURATED_TYPES[mon.id];
+  const t = TYPE_LIST[mon.id % TYPE_LIST.length];
+  return t === "Normal" ? ["Normal"] : [t];
+}
+function mv(name, type, power, acc=100, opts={}){ return { name, type, power, acc, cat:opts.cat||(power>0?"phys":"status"), priority:opts.priority||0, status:opts.status||null, stage:opts.stage||null, chance:opts.chance??1 }; }
+const TYPE_MOVES = {
+  Normal:[mv("Body Slam","Normal",85,100,{status:"paralysis",chance:.3}), mv("Quick Attack","Normal",40,100,{priority:1}), mv("Swords Dance","Normal",0,100,{stage:["atk",2],cat:"status"})],
+  Fire:[mv("Flamethrower","Fire",90,100,{cat:"spec",status:"burn",chance:.1}), mv("Fire Fang","Fire",65,95,{status:"burn",chance:.1}), mv("Will-O-Wisp","Fire",0,85,{status:"burn",cat:"status"})],
+  Water:[mv("Surf","Water",90,100,{cat:"spec"}), mv("Aqua Tail","Water",90,90), mv("Aqua Ring","Water",0,100,{stage:["def",1],cat:"status"})],
+  Electric:[mv("Thunderbolt","Electric",90,100,{cat:"spec",status:"paralysis",chance:.1}), mv("Spark","Electric",65,100,{status:"paralysis",chance:.3}), mv("Thunder Wave","Electric",0,90,{status:"paralysis",cat:"status"})],
+  Grass:[mv("Giga Drain","Grass",75,100,{cat:"spec"}), mv("Razor Leaf","Grass",55,95), mv("Sleep Powder","Grass",0,75,{status:"paralysis",cat:"status"})],
+  Ice:[mv("Ice Beam","Ice",90,100,{cat:"spec"}), mv("Ice Fang","Ice",65,95), mv("Hail Armor","Ice",0,100,{stage:["def",1],cat:"status"})],
+  Fighting:[mv("Close Combat","Fighting",120,100), mv("Karate Chop","Fighting",50,100), mv("Bulk Up","Fighting",0,100,{stage:["atk",1],cat:"status"})],
+  Poison:[mv("Sludge Bomb","Poison",90,100,{cat:"spec",status:"poison",chance:.3}), mv("Poison Fang","Poison",50,100,{status:"poison",chance:.5}), mv("Toxic","Poison",0,90,{status:"poison",cat:"status"})],
+  Ground:[mv("Earthquake","Ground",100,100), mv("Mud Shot","Ground",55,95,{cat:"spec"}), mv("Sand Attack","Ground",0,100,{stage:["acc",-1],cat:"status"})],
+  Flying:[mv("Air Slash","Flying",75,95,{cat:"spec"}), mv("Wing Attack","Flying",60,100), mv("Roost","Flying",0,100,{stage:["def",1],cat:"status"})],
+  Psychic:[mv("Psychic","Psychic",90,100,{cat:"spec"}), mv("Zen Headbutt","Psychic",80,90), mv("Calm Mind","Psychic",0,100,{stage:["atk",1],cat:"status"})],
+  Bug:[mv("X-Scissor","Bug",80,100), mv("Bug Buzz","Bug",90,100,{cat:"spec"}), mv("String Shot","Bug",0,95,{stage:["spd",-1],cat:"status"})],
+  Rock:[mv("Rock Slide","Rock",75,90), mv("Stone Edge","Rock",100,80), mv("Rock Polish","Rock",0,100,{stage:["spd",2],cat:"status"})],
+  Ghost:[mv("Shadow Ball","Ghost",80,100,{cat:"spec"}), mv("Shadow Claw","Ghost",70,100), mv("Curse","Ghost",0,100,{stage:["atk",1],cat:"status"})],
+  Dragon:[mv("Dragon Claw","Dragon",80,100), mv("Dragon Pulse","Dragon",85,100,{cat:"spec"}), mv("Dragon Dance","Dragon",0,100,{stage:["atk",1],cat:"status"})],
+  Dark:[mv("Crunch","Dark",80,100), mv("Night Slash","Dark",70,100), mv("Nasty Plot","Dark",0,100,{stage:["atk",2],cat:"status"})],
+  Steel:[mv("Iron Head","Steel",80,100), mv("Flash Cannon","Steel",80,100,{cat:"spec"}), mv("Iron Defense","Steel",0,100,{stage:["def",2],cat:"status"})],
+  Fairy:[mv("Moonblast","Fairy",95,100,{cat:"spec"}), mv("Play Rough","Fairy",90,90), mv("Charm","Fairy",0,100,{stage:["atkE",-1],cat:"status"})],
+};
+const GENERIC_MOVES = [mv("Tackle","Normal",40,100), mv("Bite","Dark",60,100), mv("Growl","Normal",0,100,{stage:["atkE",-1],cat:"status"})];
+function movesFor(mon){
+  const types = speciesTypes(mon), out = [];
+  for (const t of types){ const pool = TYPE_MOVES[t]||[]; if (pool[0]) out.push(pool[0]); if (pool[1]) out.push(pool[1]); }
+  if (types[0] && TYPE_MOVES[types[0]] && TYPE_MOVES[types[0]][2]) out.push(TYPE_MOVES[types[0]][2]);
+  for (const g of GENERIC_MOVES) if (out.length < 4) out.push(g);
+  return [...new Map(out.map(m=>[m.name,m])).values()].slice(0,4);
+}
+const BASE_STATS = { common:{hp:58,atk:52,def:50,spd:50}, uncommon:{hp:72,atk:68,def:64,spd:66}, rare:{hp:92,atk:92,def:86,spd:88}, legendary:{hp:120,atk:118,def:110,spd:112} };
+function makeFighter(mon, level, count=1){
+  const base = BASE_STATS[mon.rarity] || BASE_STATS.common;
+  const stat = v => Math.floor(v * (1 + level*0.11)) + level + 4;
+  const maxHp = Math.floor(base.hp * (1 + level*0.13)) + level*3 + 18;
+  return { id:mon.id, name:mon.name, mon, level, count, types:speciesTypes(mon), moves:movesFor(mon),
+    maxHp, hp:maxHp, atk:stat(base.atk), def:stat(base.def), spd:stat(base.spd) * (mon.id%7+8)/10,
+    status:null, stages:{atk:0,def:0,spd:0,acc:0}, shiny:!!state.shinyDex[mon.id] };
+}
+const LEADER_TEAMS = {
+  brock:[[74,10],[95,13],[76,12]], misty:[[120,17],[55,19],[121,20]], surge:[[100,24],[25,26],[26,28]],
+  erika:[[71,31],[114,33],[45,34]], koga:[[109,38],[89,40],[110,42]], sabrina:[[64,45],[122,47],[65,49]],
+  blaine:[[58,52],[78,54],[59,56]], giovanni:[[111,60],[53,62],[112,65]],
+};
+let battle = null, battleSeq = 0;
+const stageMult = f => Math.max(0.25, 1 + (f.stages.atk||0)*0.5);
+function battleLog(html){ $("vs-log").innerHTML = html; }
+function fighterById(id){ return WILD_POKEMON.find(m=>m.id===id) || WILD_POKEMON[0]; }
+function renderBattle(){
+  if (!battle) return;
+  const P = battle.player[battle.pActive], E = battle.enemy[battle.eActive];
+  const pS = $("vs-player-sprite"), eS = $("vs-enemy-sprite");
+  if (P){ pS.src = ANIM_SPRITE(P.id, P.shiny); pS.onerror=()=>{pS.onerror=null;pS.src=SPRITE_POKEMON(P.id);}; $("vs-player-name").textContent = `${P.shiny?"✨ ":""}${P.name} Lv.${P.level}${P.status?" · "+P.status.toUpperCase():""}`; $("hp-player").style.width = Math.max(0,P.hp/P.maxHp*100)+"%"; }
+  if (E){ eS.src = ANIM_SPRITE(E.id, false); eS.onerror=()=>{eS.onerror=null;eS.src=SPRITE_POKEMON(E.id);}; $("vs-enemy-name").textContent = `${battle.leader.name}'s ${E.name} Lv.${E.level}${E.status?" · "+E.status.toUpperCase():""}`; $("hp-enemy").style.width = Math.max(0,E.hp/E.maxHp*100)+"%"; }
+  $("vs-status").innerHTML = `<span>Your team: ${battle.player.map((f,i)=>`<span class="${f.hp<=0?"fainted-dot":""}">${i===battle.pActive?"▶":""}${f.name} ${Math.max(0,Math.ceil(f.hp))}/${f.maxHp}</span>`).join(" · ")}</span><br><span>${battle.leader.name}: ${battle.enemy.map((f,i)=>`<span class="${f.hp<=0?"fainted-dot":""}">${i===battle.eActive?"▶":""}${f.name} ${Math.max(0,Math.ceil(f.hp))}/${f.maxHp}</span>`).join(" · ")}</span>`;
+  const mg = $("move-grid");
+  if (battle.over || battle.busy || !P || P.hp<=0){ mg.innerHTML = ""; }
+  else mg.innerHTML = P.moves.map((m,i)=>`<button type="button" class="move-btn type-${m.type.toLowerCase()}" data-move="${i}"><b>${m.name}</b><small>${m.type} · ${m.power?("Pow "+m.power):"Status"} · Acc ${m.acc}</small></button>`).join("");
+  $("btn-potion").disabled = battle.over || battle.busy || battle.potions<=0 || !P || P.hp<=0 || P.hp>=P.maxHp;
+  $("btn-potion").textContent = `🧪 Potion (×${battle.potions})`;
+  $("btn-switch").disabled = battle.over || battle.busy;
+  const sr = $("switch-row");
+  if (battle.showSwitch && !battle.over){
+    sr.classList.remove("hidden");
+    sr.innerHTML = battle.player.map((f,i)=>`<button type="button" class="ball-choice" data-switch="${i}" ${f.hp<=0||i===battle.pActive?"disabled":""}>${f.name} Lv.${f.level} · ${Math.max(0,Math.ceil(f.hp))} HP</button>`).join("");
+  } else sr.classList.add("hidden");
+}
+async function execMove(attacker, defender, move, seq, isPlayer){
+  if (!battle || battle.seq !== seq) return;
+  const sprite = isPlayer ? $("vs-player-sprite") : $("vs-enemy-sprite");
+  const foeSprite = isPlayer ? $("vs-enemy-sprite") : $("vs-player-sprite");
+  if (attacker.status === "paralysis" && Math.random() < 0.25){ battleLog(`⚡ <b>${attacker.name}</b> is paralysed and can't move!`); await wait(650); return; }
+  if (Math.random()*100 > move.acc * (attacker.stages.acc<0 ? 0.7 : 1)){ battleLog(`<b>${attacker.name}</b> used ${move.name} — it missed!`); tone(200,.1,"sine",0,.03); await wait(650); return; }
+  sprite.classList.add(isPlayer ? "lunge-r" : "lunge-l");
+  tone(isPlayer?240:170,.12,"square",0,.05);
+  await wait(240); if (!battle || battle.seq !== seq) return;
+  sprite.classList.remove("lunge-r","lunge-l");
+  if (move.power > 0){
+    const eff = typeEff(move.type, defender.types);
+    const stab = attacker.types.includes(move.type) ? 1.2 : 1;
+    const burnCut = attacker.status === "burn" && move.cat === "phys" ? 0.5 : 1;
+    const crit = Math.random() < 0.0625;
+    const atkStat = attacker.atk * stageMult(attacker) * (move.cat==="spec" ? 1.05 : 1);
+    const dmg = Math.max(1, Math.floor((((2*attacker.level/5 + 2) * move.power * atkStat / Math.max(1,defender.def)) / 50) + 2) * stab * eff * burnCut * (crit?1.5:1) * (0.85 + Math.random()*0.15));
+    defender.hp -= dmg;
+    const effText = eff === 0 ? " It had no effect!" : eff > 1 ? " <b>It's super effective!</b>" : eff < 1 ? " It's not very effective…" : "";
+    battleLog(`<b>${attacker.name}</b> used <b>${move.name}</b> — ${formatNumber(dmg)} damage!${crit?" <b>A critical hit!</b>":""}${effText}`);
+    if (move.status && defender.hp > 0 && !defender.status && Math.random() < (move.chance??1)){ defender.status = move.status; battleLog(`<b>${attacker.name}</b> used <b>${move.name}</b> — ${formatNumber(dmg)} damage! <b>${defender.name}</b> was afflicted with ${move.status}!`); }
+  } else {
+    if (move.stage){
+      const [stat, delta] = move.stage;
+      if (stat === "atkE"){ defender.stages.atk = Math.max(-3, defender.stages.atk + delta); battleLog(`<b>${attacker.name}</b> used <b>${move.name}</b> — ${defender.name}'s Attack fell!`); }
+      else { attacker.stages[stat] = Math.min(3, (attacker.stages[stat]||0) + delta); battleLog(`<b>${attacker.name}</b> used <b>${move.name}</b> — its ${stat.toUpperCase()} rose!`); }
+    } else battleLog(`<b>${attacker.name}</b> used <b>${move.name}</b>!`);
+    tone(660,.12,"triangle",0,.04);
   }
-  const won = eHP <= 0;
-  (won ? eSprite : pSprite).classList.add("fainted");
+  renderBattle();
+  await wait(700);
+}
+function applyStatusDamage(f, seq){
+  if (!f || f.hp<=0 || !f.status || (f.status !== "burn" && f.status !== "poison")) return false;
+  const dmg = Math.max(1, Math.floor(f.maxHp/8));
+  f.hp -= dmg;
+  battleLog(`<b>${f.name}</b> is hurt by its ${f.status}! (-${dmg} HP)`);
+  return true;
+}
+async function endTurnChecks(seq){
+  if (!battle || battle.seq !== seq) return true;
+  const P = battle.player[battle.pActive], E = battle.enemy[battle.eActive];
+  if (P && P.hp > 0 && applyStatusDamage(P, seq)){ renderBattle(); await wait(500); }
+  if (E && E.hp > 0 && battle && applyStatusDamage(E, seq)){ renderBattle(); await wait(500); }
+  return await handleFaints(seq);
+}
+async function handleFaints(seq){
+  if (!battle || battle.seq !== seq) return true;
+  const P = battle.player[battle.pActive], E = battle.enemy[battle.eActive];
+  if (E && E.hp <= 0){
+    $("vs-enemy-sprite").classList.add("fainted");
+    battleLog(`💫 Enemy <b>${E.name}</b> fainted!`);
+    await wait(800); if (!battle || battle.seq !== seq) return true;
+    const next = battle.enemy.findIndex(f=>f.hp>0);
+    if (next === -1){ await finishBattle(true, seq); return true; }
+    battle.eActive = next;
+    $("vs-enemy-sprite").classList.remove("fainted");
+    battleLog(`${battle.leader.name} sent out <b>${battle.enemy[next].name}</b>!`);
+    renderBattle(); await wait(650);
+  }
+  if (P && P.hp <= 0){
+    $("vs-player-sprite").classList.add("fainted");
+    battleLog(`💫 Your <b>${P.name}</b> fainted! Choose your next Pokémon!`);
+    if (!battle.player.some(f=>f.hp>0)){ await finishBattle(false, seq); return true; }
+    battle.showSwitch = true; battle.busy = false; renderBattle();
+    return true;
+  }
+  return false;
+}
+async function enemyTurn(seq){
+  if (!battle || battle.seq !== seq || battle.over) return;
+  const P = battle.player[battle.pActive], E = battle.enemy[battle.eActive];
+  if (!P || !E || P.hp<=0 || E.hp<=0) return;
+  const scored = E.moves.map(m=>({ m, score: m.power * typeEff(m.type, P.types) * (m.power?1:0.35) * Math.random() }));
+  scored.sort((a,b)=>b.score-a.score);
+  await execMove(E, P, scored[0].m, seq, false);
+  await endTurnChecks(seq);
+}
+async function playerUseMove(moveIndex){
+  if (!battle || battle.busy || battle.over) return;
+  const seq = battle.seq, P = battle.player[battle.pActive], E = battle.enemy[battle.eActive];
+  if (!P || P.hp<=0) return;
+  const move = P.moves[moveIndex]; if (!move) return;
+  battle.busy = true; battle.showSwitch = false; renderBattle();
+  const playerFirst = move.priority > 0 || P.spd >= E.spd;
+  if (playerFirst){
+    await execMove(P, E, move, seq, true);
+    if (await endTurnChecks(seq)) { if (battle && !battle.over && battle.player[battle.pActive].hp>0){ battle.busy=false; renderBattle(); } return; }
+    await enemyTurn(seq);
+  } else {
+    await enemyTurn(seq);
+    if (!battle || battle.over) { return; }
+    if (battle.player[battle.pActive].hp > 0 && battle.enemy[battle.eActive].hp > 0){
+      await execMove(battle.player[battle.pActive], battle.enemy[battle.eActive], move, seq, true);
+      await endTurnChecks(seq);
+    }
+  }
+  if (battle && !battle.over && battle.player[battle.pActive] && battle.player[battle.pActive].hp>0){ battle.busy = false; renderBattle(); }
+}
+async function finishBattle(won, seq){
+  if (!battle || battle.seq !== seq) return;
+  battle.over = true; battle.busy = false;
+  const leader = battle.leader;
   state.battleCooldownUntil = Date.now() + 30000;
   if (won){
     const first = !state.leadersDefeated[leader.id];
@@ -1082,12 +1397,12 @@ async function startBattle(leaderId){
     if (state.mode === "nuzlocke") state.nuzWins++;
     const reward = Math.round(leader.reward * (first ? 1 : 0.3) * (1 + state.badges*0.1));
     earn(reward);
-    log.innerHTML = `🏆 <b>${leader.aceName} fainted — you beat ${leader.name}!</b> +${fmtMoney(reward)}${first ? " · First win: permanent <b>+2% all earnings</b>!" : ""}`;
+    battleLog(`🏆 <b>You defeated ${leader.name}!</b> +${fmtMoney(reward)}${first ? " · First win: permanent <b>+2% all earnings</b>!" : ""}`);
     toast(`🏆 Defeated <b>${leader.name}</b>! +${fmtMoney(reward)}${first ? " (+2% forever)" : ""}`);
     jingle([523,659,784,1047]);
-    setNews(`Unknown challenger stuns Gym Leader ${leader.name}! "My ${leader.aceName} never stood a chance," witnesses report.`);
+    setNews(`Unknown challenger stuns Gym Leader ${leader.name} in a full six-on-six thriller!`);
   } else {
-    log.innerHTML = `💫 <b>${champ.mon.name} fainted!</b> ${leader.name}: "Train up and come back, kid." (30s cooldown)`;
+    battleLog(`💫 <b>Your team was wiped out!</b> ${leader.name}: "Train up and come back, kid." (30s cooldown)`);
     jingle([392,330,262,196]);
     if (state.mode === "nuzlocke"){
       const owned = Object.entries(state.pokedex).filter(([,c])=>c>0);
@@ -1097,16 +1412,66 @@ async function startBattle(leaderId){
         state.pokedex[lostId]--;
         if (state.pokedex[lostId] <= 0){ delete state.pokedex[lostId]; if (state.buddyId===Number(lostId)) state.buddyId = null; }
         state.bonusPct = Math.max(0, state.bonusPct - 1);
-        log.innerHTML += `<br>💀 <b>Nuzlocke:</b> a ${lost?lost.name:"Pokémon"} was lost in the battle… (-1% collection bonus)`;
+        battleLog(`💫 Your team was wiped out!<br>💀 <b>Nuzlocke:</b> a ${lost?lost.name:"Pokémon"} was lost… (-1% collection bonus)`);
         renderPokedex(); renderBuddy();
       }
     }
   }
   $("btn-close-battle").classList.remove("hidden");
-  battleBusy = false;
+  $("move-grid").innerHTML = ""; $("switch-row").classList.add("hidden");
   checkAchievements(); refreshAll(); refreshGym(); saveGame();
 }
+async function startBattle(leaderId){
+  const leader = GYM_LEADERS.find(l=>l.id===leaderId);
+  if (!leader || battleBusy || Date.now() < state.battleCooldownUntil || state.totalCaught <= 0) return;
+  battleBusy = true;
+  const entries = Object.entries(state.pokedex).map(([id,count])=>({ mon:WILD_POKEMON.find(m=>m.id===Number(id)), count })).filter(x=>x.mon);
+  entries.sort((a,b)=>(RARITY_POWER[b.mon.rarity]*b.count) - (RARITY_POWER[a.mon.rarity]*a.count));
+  const teamEntries = entries.slice(0,6);
+  if (state.buddyId){ const bi = teamEntries.findIndex(x=>x.mon.id===state.buddyId); if (bi > 0){ const [b] = teamEntries.splice(bi,1); teamEntries.unshift(b); } }
+  const player = teamEntries.map(x=>makeFighter(x.mon, 10 + x.count*2 + Math.min(40, Math.floor(trainerLevel()/2)), x.count));
+  const enemy = (LEADER_TEAMS[leader.id]||[[leader.ace,20]]).map(([id,level])=>makeFighter(fighterById(id), level));
+  battle = { leader, player, enemy, pActive:0, eActive:0, potions:2, busy:false, over:false, showSwitch:false, seq:++battleSeq };
+  $("vs-player-name").textContent = ""; $("vs-enemy-name").textContent = "";
+  $("gym-battle-title").textContent = `⚔️ You vs ${leader.name}, ${leader.title}!`;
+  $("btn-close-battle").classList.add("hidden");
+  $("battle-modal").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  $("vs-player-sprite").classList.remove("fainted"); $("vs-enemy-sprite").classList.remove("fainted");
+  battleLog(`${leader.name}: "Think you can take my team? Let's see!" — Choose a move!`);
+  jingle([440,440,440,587]);
+  refreshGym(); renderBattle();
+}
+$("move-grid").addEventListener("click", e=>{ const b = e.target.closest("[data-move]"); if (b) playerUseMove(Number(b.dataset.move)); });
+$("btn-potion").addEventListener("click", async ()=>{
+  if (!battle || battle.busy || battle.over || battle.potions<=0) return;
+  const P = battle.player[battle.pActive]; if (!P || P.hp<=0) return;
+  const seq = battle.seq;
+  battle.potions--; battle.busy = true;
+  const healed = Math.min(P.maxHp - P.hp, Math.floor(P.maxHp*0.45));
+  P.hp += healed;
+  battleLog(`🧪 You used a Potion! <b>${P.name}</b> recovered ${healed} HP.`);
+  tone(880,.15,"triangle",0,.05); renderBattle();
+  await wait(700);
+  await enemyTurn(seq);
+  if (battle && !battle.over){ battle.busy = false; renderBattle(); }
+});
+$("btn-switch").addEventListener("click", ()=>{ if (!battle || battle.busy || battle.over) return; battle.showSwitch = !battle.showSwitch; renderBattle(); });
+$("switch-row").addEventListener("click", async e=>{
+  const b = e.target.closest("[data-switch]"); if (!b || !battle || battle.over) return;
+  const idx = Number(b.dataset.switch), wasFainted = battle.player[battle.pActive].hp <= 0;
+  const seq = battle.seq;
+  battle.pActive = idx; battle.showSwitch = false;
+  $("vs-player-sprite").classList.remove("fainted");
+  battleLog(`🔁 Go, <b>${battle.player[idx].name}</b>!`);
+  if (wasFainted){ battle.busy = false; renderBattle(); return; }
+  battle.busy = true; renderBattle();
+  await wait(500);
+  await enemyTurn(seq);
+  if (battle && !battle.over){ battle.busy = false; renderBattle(); }
+});
 $("btn-close-battle").addEventListener("click", ()=>{
+  battleSeq++; battle = null; battleBusy = false;
   $("battle-modal").classList.add("hidden");
   document.body.style.overflow = encounter ? "hidden" : "";
   refreshGym();
@@ -1425,13 +1790,13 @@ function refreshHUD(){
     ? `Challenge the League — earn ${formatNumber(prestigePending())} 🏅`
     : "Challenge the League (needs $1M this run)";
 }
-function refreshAll(){ refreshHUD(); refreshShop(); refreshItems(); }
+function refreshAll(){ refreshHUD(); refreshShop(); refreshItems(); refreshVault(); renderLegacy(); }
 
 /* ---------- Prestige / reset / mute ---------- */
 els.btnPrestige.addEventListener("click", ()=>{
   const pending = prestigePending(); if (pending < 1) return;
   if (!confirm(`Prestige now? You'll lose current dollars, buildings and evolution items, but gain ${pending} Gym Badge(s) (+${pending*10}% permanent earnings). Pokédex & achievements are kept.`)) return;
-  state.badges += pending; state.balance = 0; state.runEarned = 0;
+  state.badges += pending; state.balance = legacyHas("legacy-start") ? 50000 : 0; state.runEarned = 0;
   state.buildings = Object.fromEntries(BUILDINGS.map(b=>[b.id,0]));
   state.upgrades = []; state.revealedBuildings = []; state.revealedUpgrades = [];
   els.banner.classList.add("hidden");
@@ -1453,7 +1818,7 @@ els.btnMute.addEventListener("click", ()=>{ state.muted = !state.muted; syncMute
 
 /* ---------- Main loops ---------- */
 loadGame();
-buildShop(); renderPokedex(); renderAchievements(); renderBuddy(); renderQuests(); buildSettings(); applySettings(); buildRegions(); buildGymList(); renderEgg(); renderModes(); renderDaily(); renderMilestones(); renderLeaderboard(); renderBreeding(); ensureWeather(false); renderSeason(); syncMuteBtn(); refreshAll(); rotateNews(); restartNewsTimer(); scheduleGolden(); scheduleWorldEvent();
+buildShop(); buildVault(); renderPokedex(); renderAchievements(); renderBuddy(); renderQuests(); buildSettings(); applySettings(); buildRegions(); buildGymList(); renderEgg(); renderModes(); renderDaily(); renderMilestones(); renderLeaderboard(); renderBreeding(); ensureWeather(false); renderSeason(); syncMuteBtn(); refreshAll(); rotateNews(); restartNewsTimer(); scheduleGolden(); scheduleWorldEvent();
 checkAchievements(); refreshAll();
 
 let lastTick = Date.now();
