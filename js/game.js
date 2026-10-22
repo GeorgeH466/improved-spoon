@@ -1621,22 +1621,53 @@ function renderLeaderboard(){
 }
 
 /* ---------- Daycare breeding ---------- */
+/* ---------- Daycare breeding ---------- */
+/* A Pokémon physically sits in each box: two DIFFERENT species need 1 copy each,
+   but pairing a species with ITSELF needs 2 copies — no cloning one Pokémon. */
+function breedingError(a, b){
+  if (!a || !b) return "Choose two parents first.";
+  const monA = WILD_POKEMON.find(m=>m.id===a), monB = WILD_POKEMON.find(m=>m.id===b);
+  if (!monA || (state.pokedex[a]||0) < 1) return "Parent A isn't in your collection.";
+  if (!monB || (state.pokedex[b]||0) < 1) return "Parent B isn't in your collection.";
+  if (a === b && (state.pokedex[a]||0) < 2)
+    return `You only have 1 × ${monA.name} — you need 2 copies to put one in each box. Catch another first!`;
+  return null;
+}
 function renderBreeding(){
   const caught = WILD_POKEMON.filter(m=>(state.pokedex[m.id]||0) > 0);
-  const opts = caught.length ? caught.map(m=>`<option value="${m.id}">${m.name} (×${state.pokedex[m.id]})</option>`).join("") : `<option value="">— catch something first —</option>`;
-  for (const id of ["breed-a","breed-b"]){
-    const sel = $(id); if (!sel) continue;
-    const prev = sel.value;
-    sel.innerHTML = opts;
-    if (prev && caught.some(m=>m.id===Number(prev))) sel.value = prev;
-  }
+  const selA = $("breed-a"), selB = $("breed-b");
+  if (!selA || !selB) return;
+  const prevA = Number(selA.value), prevB = Number(selB.value);
+  const optTag = (m, blocked) => `<option value="${m.id}" ${blocked?"disabled":""}>${m.name} (×${state.pokedex[m.id]})${blocked?" — only ×1, can't fill both boxes":""}</option>`;
+  const restore = (sel, prev) => {
+    const opt = [...sel.options].find(o=>Number(o.value)===prev && !o.disabled);
+    if (opt) { sel.value = opt.value; return; }
+    const first = [...sel.options].find(o=>!o.disabled && o.value);
+    sel.value = first ? first.value : "";
+  };
+  // Box A settles first: any caught species may sit in it (even your only copy).
+  selA.innerHTML = caught.length ? caught.map(m=>optTag(m, false)).join("") : `<option value="">— catch something first —</option>`;
+  restore(selA, prevA);
+  const a = Number(selA.value);
+  // Box B needs its OWN individual: A's species is blocked there unless you own ×2 of it.
+  selB.innerHTML = caught.length ? caught.map(m=>optTag(m, m.id === a && (state.pokedex[m.id]||0) < 2)).join("") : `<option value="">— catch something first —</option>`;
+  restore(selB, prevB);
+  const b = Number(selB.value);
+  let err = breedingError(a, b);
+  if (a && !b && caught.length) err = `Box B is empty — you need a second Pokémon: catch another ${WILD_POKEMON.find(m=>m.id===a)?.name} (to own ×2) or any different species.`;
   const st = $("breed-status");
-  if (st) st.textContent = state.egg ? "An egg is already incubating — hatch it first!" : caught.length ? "Choose parents and breed an egg." : "Catch at least one Pokémon to breed.";
-  $("btn-breed").disabled = !!state.egg || !caught.length || state.balance < 2500;
+  if (st) st.textContent = state.egg ? "An egg is already incubating — hatch it first!"
+    : !caught.length ? "Catch at least one Pokémon to breed."
+    : err || `Ready: ${WILD_POKEMON.find(m=>m.id===a)?.name} 💕 ${WILD_POKEMON.find(m=>m.id===b)?.name} (same species needs ×2 — one per box).`;
+  $("btn-breed").disabled = !!state.egg || !!err || state.balance < 2500;
 }
+$("breed-a").addEventListener("change", renderBreeding);
+$("breed-b").addEventListener("change", renderBreeding);
 $("btn-breed").addEventListener("click", ()=>{
   const a = Number($("breed-a").value), b = Number($("breed-b").value);
-  if (!a || !b || state.egg || state.balance < 2500) return;
+  if (state.egg || state.balance < 2500) return;
+  const err = breedingError(a, b); // hard guard — even a forced click can't clone a lone Pokémon
+  if (err){ toast(`💕 ${err}`); renderBreeding(); return; }
   state.balance -= 2500;
   const speciesId = Math.random() < 0.5 ? a : b;
   state.egg = { progress:0, target:300, speciesId, bred:true };
