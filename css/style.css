@@ -400,3 +400,34 @@ body[data-weather="snow"] .arena{background-image:radial-gradient(circle at 20% 
 body[data-weather="storm"] .battle-scene{filter:saturate(1.2)}
 body[data-season="halloween"]{--theme-accent:#ff7518}
 body[data-season="winter"]{--theme-accent:#7ec8e3}
+
+/* ============ Upgrade Vault / Legacy ============ */
+.vault-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:.45rem;max-height:340px;overflow-y:auto;scrollbar-width:thin;padding:.15rem}
+.vault-tile{cursor:pointer;border:2.5px solid #d6dbe7;background:#fff;border-radius:12px;padding:.45rem .35rem;text-align:center;font:inherit;display:grid;justify-items:center;gap:.15rem;transition:transform .1s}
+.vault-tile img{width:44px;height:44px;image-rendering:pixelated;object-fit:contain}
+.vault-tile b{font-size:.68rem;line-height:1.15}
+.vault-tile small{font-size:.62rem;color:var(--muted)}
+.vault-tile span{font-size:.7rem;font-weight:900;color:#146c2e}
+.vault-tile.ready{border-color:var(--dark);box-shadow:0 3px 0 var(--dark)}
+.vault-tile:disabled{filter:grayscale(.8);opacity:.55;cursor:not-allowed}
+.vault-tile:not(:disabled):hover{transform:translateY(-2px)}
+.legacy-list{display:grid;gap:.4rem;margin-top:.5rem}
+.legacy-list .btn{padding:.3rem .7rem;font-size:.78rem}
+
+/* ============ Full battle UI ============ */
+.move-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin:.55rem 0}
+.move-btn{cursor:pointer;border:3px solid var(--dark);border-radius:12px;padding:.5rem .6rem;font:inherit;text-align:left;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45);box-shadow:0 3px 0 var(--dark)}
+.move-btn b{display:block;font-size:.92rem}
+.move-btn small{font-size:.7rem;opacity:.92}
+.move-btn:active{transform:translateY(2px);box-shadow:none}
+.move-btn:disabled{filter:grayscale(1);opacity:.5}
+.type-normal{background:#a8a77a}.type-fire{background:#ee8130}.type-water{background:#6390f0}.type-electric{background:#d9b62a}.type-grass{background:#7ac74c}.type-ice{background:#74cfc9;color:#083b3b;text-shadow:none}.type-fighting{background:#c22e28}.type-poison{background:#a33ea1}.type-ground{background:#e2bf65;color:#4a3200;text-shadow:none}.type-flying{background:#a98ff3}.type-psychic{background:#f95587}.type-bug{background:#a6b91a}.type-rock{background:#b6a136}.type-ghost{background:#735797}.type-dragon{background:#6f35fc}.type-dark{background:#705746}.type-steel{background:#8a8a9e}.type-fairy{background:#d685ad}
+.vs-status{font-size:.76rem;background:#f2f6ff;border:2px solid #d6dbe7;border-radius:10px;padding:.4rem .6rem;margin-top:.55rem;text-align:left;line-height:1.5}
+.fainted-dot{opacity:.45;text-decoration:line-through}
+.switch-row{display:flex;gap:.45rem;flex-wrap:wrap;justify-content:center;margin-top:.5rem}
+.dex-controls{display:flex;gap:.5rem;margin-bottom:.55rem}
+.dex-controls input,.dex-controls select{flex:1;padding:.45rem .6rem;border:2.5px solid var(--dark);border-radius:10px;font:inherit;font-size:.85rem;min-width:0}
+.battle-scene.region-johto{background:linear-gradient(180deg,#fde68a 0 50%,#a16207 50% 78%,#713f12 78% 100%)}
+.battle-scene.region-lake{background:linear-gradient(180deg,#fecaca 0 45%,#3b82f6 45% 78%,#1e3a8a 78% 100%)}
+.battle-scene.region-den{background:linear-gradient(180deg,#581c87 0 55%,#312e81 55% 78%,#0f0524 78% 100%)}
+.battle-scene.region-den .wild-sprite{filter:drop-shadow(0 10px 8px rgba(0,0,0,.8)) brightness(.95)}

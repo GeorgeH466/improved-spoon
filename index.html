@@ -175,7 +175,14 @@
       <h2 class="panel-title">🏆 Achievements</h2>
       <ul id="achievements" class="achievements"></ul>
 
-      <h2 class="panel-title">📖 Your Pokédex</h2>
+      <h2 class="panel-title">📖 Your Pokédex <span id="dex-count-label" class="buddy-sub"></span></h2>
+      <div class="dex-controls">
+        <input id="dex-search" type="search" placeholder="🔍 Search species…" aria-label="Search species">
+        <select id="dex-filter" aria-label="Filter Pokédex">
+          <option value="all">All</option><option value="caught">Caught</option><option value="missing">Missing</option>
+          <option value="common">Common</option><option value="uncommon">Uncommon</option><option value="rare">Rare</option><option value="legendary">Legendary</option><option value="shiny">Shiny</option>
+        </select>
+      </div>
       <div id="pokedex" class="pokedex">
         <p class="empty-note" id="pokedex-empty">No Pokémon yet. Keep clicking — something rustles in the tall grass…</p>
       </div>
@@ -185,6 +192,9 @@
         <p>Reset your dollars, buildings and evolution items to earn <b>Gym Badges</b>: 1 badge per <b>$1,000,000</b> earned this run. Each badge grants a permanent <b>+10%</b> to all earnings. Your Pokédex, achievements and lifetime stats are kept.</p>
         <p class="prestige-pending">Badges available now: <b id="prestige-pending">0</b></p>
         <button id="btn-prestige" class="btn btn-prestige" type="button">Challenge the League (Prestige)</button>
+        <h3 class="settings-h">🌟 Legacy Shop — spend Gym Badges (permanent, survives prestige!)</h3>
+        <p class="shop-note">Careful: unspent badges each give +10% earnings. Spending them here trades that for powerful permanent perks.</p>
+        <div id="legacy-list" class="legacy-list"></div>
       </div>
     </section>
 
@@ -202,6 +212,10 @@
       <h2 class="panel-title evolution-title">🎒 Items (consumables)</h2>
       <p class="shop-note">Stock up for encounters: better balls multiply catch chance, berries distract wild Pokémon.</p>
       <div id="item-shop" class="shop-list"></div>
+
+      <h2 class="panel-title evolution-title">🏦 Upgrade Vault</h2>
+      <p class="shop-note">Cookie-Clicker-style upgrades: building tiers (own 10/25/50/100/150/200 → ×2 each), click upgrades (total-click milestones → ×2), and global research (lifetime milestones → ×all). They appear when you're close.</p>
+      <div id="vault-grid" class="vault-grid"></div>
 
       <h2 class="panel-title evolution-title">✨ Evolution Items</h2>
       <p class="shop-note">One-time purchases. Each stone multiplies one building type ×2 forever (this run).</p>
@@ -283,8 +297,15 @@
       </div>
       <div id="vs-float" class="vs-float"></div>
     </div>
+    <div id="vs-status" class="vs-status"></div>
     <p id="vs-log" class="battle-message" aria-live="polite">The battle begins!</p>
-    <div class="battle-controls"><button id="btn-close-battle" class="btn btn-throw hidden" type="button">Continue</button></div>
+    <div id="move-grid" class="move-grid"></div>
+    <div class="battle-controls">
+      <button id="btn-potion" class="btn btn-berry" type="button">🧪 Potion (×2)</button>
+      <button id="btn-switch" class="btn btn-ghost-dark" type="button">🔁 Switch Pokémon</button>
+      <button id="btn-close-battle" class="btn btn-throw hidden" type="button">Continue</button>
+    </div>
+    <div id="switch-row" class="switch-row hidden"></div>
   </div>
 </div>
 
