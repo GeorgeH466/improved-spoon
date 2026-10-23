@@ -189,11 +189,11 @@
 
       <div class="prestige-card">
         <h2 class="panel-title">🏅 Prestige — League Challenge</h2>
-        <p>Reset your dollars, buildings and evolution items to earn <b>Gym Badges</b>: 1 badge per <b>$1,000,000</b> earned this run. Each badge grants a permanent <b>+10%</b> to all earnings. Your Pokédex, achievements and lifetime stats are kept.</p>
-        <p class="prestige-pending">Badges available now: <b id="prestige-pending">0</b></p>
+        <p>Reset your dollars, buildings and evolution items to earn <b>Gym Badges</b>. The first badge costs <b>$1,000,000</b> earned this run — but <b>each successive badge costs ×100 more</b> ($100M, then $10B, then $1T…). Each badge <b>multiplies ALL earnings ×1.12, compounding forever</b>. Your Pokédex, achievements and lifetime stats are kept.</p>
+        <p class="prestige-pending">Badges available now: <b id="prestige-pending">0</b> · Next badge costs <b id="prestige-next-cost">—</b> this run · Badge multiplier: <b id="prestige-mult">×1</b></p>
         <button id="btn-prestige" class="btn btn-prestige" type="button">Challenge the League (Prestige)</button>
         <h3 class="settings-h">🌟 Legacy Shop — spend Gym Badges (permanent, survives prestige!)</h3>
-        <p class="shop-note">Careful: unspent badges each give +10% earnings. Spending them here trades that for powerful permanent perks.</p>
+        <p class="shop-note">Careful: every unspent badge multiplies all earnings ×1.12 (compounding). Spending badges here trades that multiplier for powerful permanent perks — and Legacy prices rise ×8 per level.</p>
         <div id="legacy-list" class="legacy-list"></div>
       </div>
     </section>
@@ -206,6 +206,7 @@
         <button type="button" class="qty-btn active" data-qty="1">×1</button>
         <button type="button" class="qty-btn" data-qty="10">×10</button>
         <button type="button" class="qty-btn" data-qty="100">×100</button>
+        <button type="button" class="qty-btn" data-qty="max">MAX</button>
       </div>
       <div id="building-shop" class="shop-list"></div>
 

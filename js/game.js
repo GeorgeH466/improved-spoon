@@ -74,6 +74,9 @@ const MILESTONES = [
   { at:1e15, label:"Earn $1Qa lifetime",    reward:0, item:"master" }, { at:1e17, label:"Earn $100Qa lifetime",reward:0, item:"master" },
   { at:1e19, label:"Earn $10Qi lifetime",   reward:0, item:"master" }, { at:1e20, label:"Earn $100Qi (1e20!) lifetime", reward:0, item:"master" },
 ];
+for (let e = 21; e <= 200; e += 3){
+  MILESTONES.push({ at:Math.pow(10,e), label:`Earn $1e${e} lifetime`, reward:0, item:"master" });
+}
 const RIVALS = [
   { name:"Bug Catcher Joey", at:5000 }, { name:"Lass Nikki", at:25000 }, { name:"Hiker Bruno", at:80000 },
   { name:"Swimmer Marina", at:250000 }, { name:"Rocket Grunt Marco", at:750000 }, { name:"Ace Trainer Yuki", at:2000000 },
@@ -121,6 +124,23 @@ const BUILDINGS = [
   { id:"tera",     name:"Terastal Observatory", emoji:"💠", sprite:SPRITE_POKEMON(1024),      baseCost:24000000000000000000, baseDps:1200000000000, blurb:"Crystallised profits, refracted daily." },
   { id:"shrine",   name:"Arceus Shrine",     emoji:"🌌", sprite:SPRITE_POKEMON(493),         baseCost:400000000000000000000, baseDps:9000000000000, blurb:"The Original One accepts your clicks as tribute." },
 ];
+
+/* Cosmic ladder: 40 generated mega-structures, then 8 Oblivion-tier finales.
+   Base ladder alone climbs past $1e130; tiers/prestige/research carry it to 1e200+. */
+{
+  const cosmicNames = ["Hall of Origin","Distortion World Gate","Crown Shrine","Area Zero Lab","Blueberry Academy","Galar Mining Corp","Treasure Vault of Paldea","Hisui Settlement","Orre Colosseum","Sevii Network","Battle Pyramid","Mythical Menagerie","Multiverse Poké Mart","Timeline Bazaar","Cosmic Daycare","Infinity Silph HQ","Eternatus Reactor","Paradox Foundry","Stellar Nursery","Quantum Poké Mart","Nebula Nursery","Graviton Gymnasium","Chrono Conservatory","Void-Touched Vault","Astral Aquarium","Singularity Safari","Eclipse Observatory","Supernova Stadium","Dark Matter Daycare","Antimatter Arcade","Wormhole Waterpark","Event Horizon Emporium","Pulsar Power Plant","Quasar Quarry","Magnetar Mall","Supercluster Spa","Intergalactic League","Dimensional Deli","Eternal Engine","The First Pokéball"];
+  const cosmicSprites = [150,249,483,493,800,888,1024,487,484,845,1000,980,778,823,887,964,230,382,383,384,643,644,646,649,720,721,789,790,791,792,793,801,802,807,808,809,890,891,898,905];
+  let cost = 2e22, dps = 1.4e14;
+  cosmicNames.forEach((name,i)=>{
+    BUILDINGS.push({ id:`cosmic-${i}`, name, emoji:"🌌", sprite:SPRITE_POKEMON(cosmicSprites[i%cosmicSprites.length]), baseCost:cost, baseDps:dps, blurb:"Profits measured in astronomical units." });
+    cost *= 350; dps *= 210;
+  });
+  for (let i=0;i<8;i++){
+    const c = Math.pow(10, 130 + i*10);
+    BUILDINGS.push({ id:`oblivion-${i}`, name:["Oblivion Gate","Oblivion Spire","Oblivion Forge","Oblivion Throne","Oblivion Engine","Oblivion Crown","Oblivion Heart","Throne of Oblivion"][i],
+      emoji:"♾️", sprite:SPRITE_POKEMON([493,150,249,250,483,484,800,1025][i]), baseCost:c, baseDps:c/1e12, blurb:"Beyond this point, accounting becomes philosophy." });
+  }
+}
 
 const UPGRADES = [ // Evolution items: one-time, ×2 to one building (or clicks)
   { id:"thunder-stone", name:"Thunder Stone", emoji:"⚡", sprite:SPRITE_ITEM("thunder-stone"), cost:2500,    target:"launcher", label:"Pokéball Launchers ×2" },
@@ -216,8 +236,8 @@ function partyPower(){
   }, 0) + Math.min(trainerLevel(),200)*5 + state.badges*20;
 }
 /* Tier upgrades: owning N of a building unlocks a ×2 for it (Cookie Clicker style) */
-const TIER_THRESHOLDS = [10, 25, 50, 100, 150, 200];
-const TIER_NAMES = ["Reinforced", "Turbo", "Golden", "Plasma", "Quantum", "Mythic"];
+const TIER_THRESHOLDS = [10, 25, 50, 100, 150, 200, 300, 500, 750, 1000];
+const TIER_NAMES = ["Reinforced", "Turbo", "Golden", "Plasma", "Quantum", "Mythic", "Ascended", "Celestial", "Void", "Oblivion"];
 const TIER_UPGRADES = [];
 BUILDINGS.forEach(b=>{
   TIER_THRESHOLDS.forEach((th, i)=>{
@@ -247,13 +267,17 @@ const GLOBAL_UPGRADES = [
   { id:"glob-7",  name:"Ultra Wormhole Grid",emoji:"🌀", sprite:SPRITE_ITEM("enigmatic-card"),lifetime:5000000000000,  cost:20000000000000,   mult:1.45, label:"All production ×1.45" },
   { id:"glob-8",  name:"Creation Engine",    emoji:"🌌", sprite:SPRITE_ITEM("griseous-orb"), lifetime:1000000000000000,cost:1000000000000000, mult:1.5, label:"All production ×1.5" },
 ];
+for (let i=0;i<16;i++){
+  GLOBAL_UPGRADES.push({ id:`glob2-${i}`, name:`Oblivion Research ${["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV","XVI"][i]}`,
+    emoji:"♾️", sprite:SPRITE_ITEM("star-piece"), lifetime:1e17*Math.pow(30,i), cost:1e18*Math.pow(30,i), mult:2, label:"All production ×2" });
+}
 const LEGACY_UPGRADES = [
-  { id:"legacy-click", icon:"👆", name:"Legacy Fingers",  cost:1,   desc:"Click power ×3, forever." },
-  { id:"legacy-dps",   icon:"🏭", name:"Legacy Industry", cost:5,   desc:"All production ×3, forever." },
-  { id:"legacy-start", icon:"💰", name:"Golden Start",    cost:10,  desc:"After prestiging, start with $50,000." },
-  { id:"legacy-catch", icon:"🎣", name:"Legacy Lures",    cost:25,  desc:"Catch chances ×1.25, forever." },
-  { id:"legacy-dex",   icon:"📖", name:"Living Legacy",   cost:60,  desc:"Collection bonus counts double." },
-  { id:"legacy-gold",  icon:"🐟", name:"Golden Legacy",   cost:150, desc:"Golden Magikarp pay ×5." },
+  { id:"legacy-click", icon:"👆", name:"Legacy Fingers",  cost:1,   desc:"Click power ×3 per level, forever." },
+  { id:"legacy-dps",   icon:"🏭", name:"Legacy Industry", cost:5,   desc:"All production ×3 per level, forever." },
+  { id:"legacy-start", icon:"💰", name:"Golden Start",    cost:10,  desc:"Start each prestige with $50K (×10 per level)." },
+  { id:"legacy-catch", icon:"🎣", name:"Legacy Lures",    cost:25,  desc:"Catch chances ×1.25 per level, forever." },
+  { id:"legacy-dex",   icon:"📖", name:"Living Legacy",   cost:60,  desc:"Collection bonus +100% per level." },
+  { id:"legacy-gold",  icon:"🐟", name:"Golden Legacy",   cost:150, desc:"Golden Magikarp pay ×5 per level." },
 ];
 const SHINY_CHANCE = 1/32;
 
@@ -308,6 +332,10 @@ const ACHIEVEMENTS = [
   { id:"rich-1e14",    icon:"🌌", name:"Galactic Tycoon",       desc:"Earn $100T lifetime.",                 test:s=>s.lifetime>=1e14 },
   { id:"rich-1e17",    icon:"🪐", name:"Universal Economy",     desc:"Earn $100Qa lifetime.",                test:s=>s.lifetime>=1e17 },
   { id:"rich-1e20",    icon:"♾️", name:"BEYOND MILLIONS (1e20)", desc:"Earn $1e20 lifetime. Your friend owes you lunch.", test:s=>s.lifetime>=1e20 },
+  { id:"rich-1e50",    icon:"🌠", name:"Heat Death Investor",   desc:"Earn $1e50 lifetime.",                  test:s=>s.lifetime>=1e50 },
+  { id:"rich-1e100",   icon:"🌀", name:"Economy Singularity",   desc:"Earn $1e100 lifetime.",                 test:s=>s.lifetime>=1e100 },
+  { id:"rich-1e150",   icon:"👁️", name:"Staring Into Oblivion", desc:"Earn $1e150 lifetime.",                 test:s=>s.lifetime>=1e150 },
+  { id:"rich-1e200",   icon:"🏁", name:"1e200. Actually Done.", desc:"Earn $1e200 lifetime. Touch grass (in-game).", test:s=>s.lifetime>=1e200 },
   { id:"vault-10",     icon:"🏦", name:"Upgrade Collector",     desc:"Own 10 Vault upgrades.",               test:s=>s.upgrades.length>=10 },
   { id:"vault-50",     icon:"💹", name:"Compound Interest",     desc:"Own 50 Vault upgrades.",               test:s=>s.upgrades.length>=50 },
   { id:"buildings-300",icon:"🏙️", name:"Metropolis",            desc:"Own 300 buildings.",                   test:s=>totalBuildings(s)>=300 },
@@ -325,11 +353,13 @@ function formatNumber(n){
   if (notation === "full") return Math.floor(n).toLocaleString("en-US");
   if (n < 1000) return n.toLocaleString("en-US", { maximumFractionDigits: 2 }); // keep $0.1/s visible early game
   if (n < 1e6) return Math.floor(n).toLocaleString("en-US");
-  const units = [[1e33,"Dc"],[1e30,"No"],[1e27,"Oc"],[1e24,"Sp"],[1e21,"Sx"],[1e18,"Qi"],[1e15,"Qa"],[1e12,"T"],[1e9,"B"],[1e6,"M"],[1e3,"K"]];
-  for (const [v,u] of units) if (n >= v) {
-    const x = n / v;
-    return (x >= 100 ? x.toFixed(0) : x >= 10 ? x.toFixed(1) : x.toFixed(2)).replace(/\.0+$|(\.\d*[1-9])0+$/,"$1") + u;
+  const SUFFIXES = ["","K","M","B","T","Qa","Qi","Sx","Sp","Oc","No","Dc","UDc","DDc","TDc","QaDc","QiDc","SxDc","SpDc","OcDc","NoDc","Vg","UVg","DVg","TVg","QaVg","QiVg","SxVg","SpVg","OcVg","NoVg","Tg","UTg","DTg","TTg","QaTg","QiTg","SxTg","SpTg","OcTg","NoTg","Qag","UQag","DQag","TQag","QaQag","QiQag","SxQag","SpQag","OcQag","NoQag","Qig","UQig","DQig","TQig","QaQig","QiQig","SxQig","SpQig","OcQig","NoQig","Sxg","USxg","DSxg","TSxg","QaSxg","QiSxg","SxSxg","SpSxg","OcSxg","NoSxg","Spg","USpg","DSpg"];
+  const tier = Math.floor(Math.log10(n) / 3);
+  if (tier >= 1 && tier < SUFFIXES.length){
+    const x = n / Math.pow(10, tier*3);
+    return (x >= 100 ? x.toFixed(0) : x >= 10 ? x.toFixed(1) : x.toFixed(2)).replace(/\.0+$|(\.\d*[1-9])0+$/,"$1") + SUFFIXES[tier];
   }
+  if (tier >= SUFFIXES.length) return n.toExponential(2);
   return String(Math.floor(n));
 }
 const fmtMoney = n => "$" + formatNumber(n);
@@ -348,7 +378,7 @@ function defaultState(){
     items:{ berry:3, great:0, ultra:0, master:0 },
     buddyId:null, maxCombo:0, goldenCaught:0, quests:[], questDay:"", questsDone:0,
     region:"Kanto", leadersDefeated:{}, battleCooldownUntil:0, egg:null, eggsHatched:0, leaderWins:0,
-    mode:"classic", buffs:[], weather:{ id:"clear", until:0 }, lastDaily:"", milestonesClaimed:[], legacyUpgrades:[],
+    mode:"classic", buffs:[], weather:{ id:"clear", until:0 }, lastDaily:"", milestonesClaimed:[], legacyUpgrades:[], legacyLevels:{},
     bredDex:{}, eggsBred:0, slots:{ spins:0, won:0, jackpots:0 }, eventsSeen:0, rocketWins:0,
     snorlaxMoved:0, nuzWins:0, speedrun:{ active:false, startedAt:0, startEarned:0, bestMs:0, runs:0 },
     settingsExtra:0,
@@ -366,7 +396,12 @@ function buildingMultiplier(id){
 }
 function clickTierMult(){ return Math.pow(2, CLICK_UPGRADES.filter(u=>state.upgrades.includes(u.id)).length); }
 function globalUpgradeMult(){ return GLOBAL_UPGRADES.reduce((m,u)=> m * (state.upgrades.includes(u.id) ? u.mult : 1), 1); }
-function legacyHas(id){ return state.legacyUpgrades.includes(id); }
+function legacyLevel(id){ return (state.legacyLevels && state.legacyLevels[id]) || 0; }
+function legacyHas(id){ return legacyLevel(id) > 0 || state.legacyUpgrades.includes(id); }
+function legacyCost(u){ return Math.ceil(u.cost * Math.pow(8, legacyLevel(u.id))); }
+function prestigeMult(){ return Math.pow(1.12, state.badges); }
+function badgesEarnedTotal(){ return Math.max(state.badgesEarned || 0, state.badges); }
+function nextBadgeCost(alreadyHave = badgesEarnedTotal()){ return 1e6 * Math.pow(100, alreadyHave); }
 function leaderBonus(){ return Object.keys(state.leadersDefeated).length * 0.02; }
 function pruneBuffs(){ const now = Date.now(); state.buffs = (state.buffs||[]).filter(b=>b.expires > now); }
 function addBuff(kind, mult, seconds, label, icon){
@@ -381,7 +416,7 @@ function buffMult(kind){
 function costMult(){ return state.buffs.reduce((m,b)=> m * (b.kind==="sale" ? b.mult : 1), 1); }
 function modeMult(){ return state.mode==="zen" ? 1.2 : state.mode==="nuzlocke" ? 1.25 : 1; }
 function effectiveCatchClicks(){ return state.buffs.some(b=>b.kind==="swarm" && b.expires>Date.now()) ? 50 : CLICKS_PER_CATCH; }
-function globalMultiplier(){ return (1 + state.badges * 0.10) * (1 + state.bonusPct * (legacyHas("legacy-dex") ? 0.02 : 0.01)) * (1 + leaderBonus()) * modeMult() * currentWeather().dps * buffMult("dps") * globalUpgradeMult() * (legacyHas("legacy-dps") ? 3 : 1); }
+function globalMultiplier(){ return prestigeMult() * (1 + state.bonusPct * 0.01 * (1 + legacyLevel("legacy-dex"))) * (1 + leaderBonus()) * modeMult() * currentWeather().dps * buffMult("dps") * globalUpgradeMult() * Math.pow(3, legacyLevel("legacy-dps")); }
 function trainerLevel(){ return Math.floor(Math.sqrt(state.lifetime / 500)) + 1; }
 function getDPS(){
   const base = BUILDINGS.reduce((sum,b)=> sum + (state.buildings[b.id]||0) * b.baseDps * buildingMultiplier(b.id), 0);
@@ -394,8 +429,18 @@ function buddyBonus(){
   const base = { common:0.05, uncommon:0.12, rare:0.25, legendary:0.50 }[mon.rarity] || 0.05;
   return base + Math.max(0,(state.pokedex[mon.id]||1)-1) * 0.02 + (state.shinyDex[mon.id] ? 0.10 : 0);
 }
-function clickPower(){ return 1 * (state.upgrades.includes("rare-candy") ? 2 : 1) * (1 + state.badges * 0.10) * (1 + buddyBonus()) * currentWeather().click * buffMult("click") * (state.mode==="zen" ? 1.1 : 1) * clickTierMult() * (legacyHas("legacy-click") ? 3 : 1); }
-function prestigePending(){ return Math.floor(state.runEarned / 1e6); }
+function clickPower(){ return 1 * (state.upgrades.includes("rare-candy") ? 2 : 1) * prestigeMult() * (1 + buddyBonus()) * currentWeather().click * buffMult("click") * (state.mode==="zen" ? 1.1 : 1) * clickTierMult() * Math.pow(3, legacyLevel("legacy-click")); }
+function prestigePending(){
+  // Each successive Gym Badge costs x100 more this-run earnings than the last.
+  let count = 0, remaining = state.runEarned, cost = nextBadgeCost(); // priced on lifetime badges earned — spending badges never makes the next one cheaper
+  while (remaining >= cost && count < 500){ remaining -= cost; count++; cost *= 100; }
+  return count;
+}
+function prestigeNextCost(){ // cost of the NEXT badge after claiming what you can now
+  let remaining = state.runEarned, cost = nextBadgeCost(), n = badgesEarnedTotal();
+  while (remaining >= cost){ remaining -= cost; n++; cost = nextBadgeCost(n); }
+  return cost;
+}
 
 function earn(amount){
   state.balance += amount; state.lifetime += amount; state.runEarned += amount;
@@ -438,6 +483,9 @@ function loadGame(){
       slots:{ ...fresh.slots, ...(parsed.slots||{}) },
       speedrun:{ ...fresh.speedrun, ...(parsed.speedrun||{}) },
       legacyUpgrades:Array.isArray(parsed.legacyUpgrades)?parsed.legacyUpgrades:[],
+      badgesEarned: (typeof parsed.badgesEarned==="number") ? parsed.badgesEarned : (parsed.badges||0),
+      legacyLevels:(parsed.legacyLevels && typeof parsed.legacyLevels==="object") ? parsed.legacyLevels
+        : Object.fromEntries((Array.isArray(parsed.legacyUpgrades)?parsed.legacyUpgrades:[]).map(id=>[id,1])),
     };
     if (parsed.bonusPct === undefined) state.bonusPct = state.totalCaught; // pre-minigame saves: +1% per catch
     // Offline earnings: 50% rate, capped at 8h
@@ -566,6 +614,12 @@ function refreshShop(){
     row.root.classList.toggle("hidden", !revealed);
     if (!revealed) continue;
     row.contrib.textContent = fmtRate(buildingDPS(b)) + (buildingMultiplier(b.id)>1 ? " (×2 stone!)" : "");
+    if (buyQty === "max"){
+      const m = maxAffordable(b);
+      row.cost.textContent = m.qty > 0 ? `${fmtMoney(m.total)} ×${formatNumber(m.qty)}` : fmtMoney(cost);
+      row.root.disabled = m.qty < 1; row.root.classList.toggle("cant-afford", m.qty < 1); row.cost.classList.toggle("cant", m.qty < 1);
+      continue;
+    }
     row.cost.textContent = buyQty > 1 ? `${fmtMoney(bulkCost(b, buyQty))} ×${buyQty}` : fmtMoney(cost);
     const afford = state.balance >= bulkCost(b, buyQty);
     row.root.disabled = !afford;
@@ -605,7 +659,11 @@ function buildVault(){
     vaultRows[u.id] = { root:btn, req:btn.querySelector('[data-role="req"]'), cost:btn.querySelector('[data-role="cost"]') };
   }
 }
+let lastVaultRefresh = 0;
 function refreshVault(){
+  const nowMs = performance.now();
+  if (nowMs - lastVaultRefresh < 400) return;
+  lastVaultRefresh = nowMs;
   for (const u of VAULT){
     const row = vaultRows[u.id]; if (!row) continue;
     const owned = state.upgrades.includes(u.id);
@@ -632,25 +690,29 @@ function buyVault(id){
 function renderLegacy(){
   const box = $("legacy-list"); if (!box) return;
   box.innerHTML = LEGACY_UPGRADES.map(u=>{
-    const owned = legacyHas(u.id);
-    return `<div class="milestone ${owned?"reached":""}"><span>${u.icon} <b>${u.name}</b> — ${u.desc}</span>
-      ${owned?'<b>✔ Owned</b>':`<button type="button" class="btn btn-prestige" data-legacy="${u.id}" ${state.badges < u.cost?"disabled":""}>Buy · ${u.cost} 🏅</button>`}</div>`;
+    const lvl = legacyLevel(u.id), cost = legacyCost(u);
+    return `<div class="milestone ${lvl?"reached":""}"><span>${u.icon} <b>${u.name}</b>${lvl?` <b>Lv.${lvl}</b>`:""} — ${u.desc} <small>(price ×8 per level)</small></span>
+      <button type="button" class="btn btn-prestige" data-legacy="${u.id}" ${state.badges < cost?"disabled":""}>${lvl?"Upgrade":"Buy"} · ${formatNumber(cost)} 🏅</button></div>`;
   }).join("");
 }
 $("legacy-list").addEventListener("click", e=>{
   const btn = e.target.closest("[data-legacy]"); if (!btn) return;
   const u = LEGACY_UPGRADES.find(x=>x.id===btn.dataset.legacy);
-  if (!u || legacyHas(u.id) || state.badges < u.cost) return;
-  if (!confirm(`Spend ${u.cost} Gym Badges on ${u.name}? (Unspent badges each give +10% earnings — this is permanent.)`)) return;
-  state.badges -= u.cost; state.legacyUpgrades.push(u.id);
-  toast(`🌟 Legacy upgrade: <b>${u.name}</b>!`);
+  if (!u) return;
+  const cost = legacyCost(u);
+  if (state.badges < cost) return;
+  if (!confirm(`Spend ${formatNumber(cost)} Gym Badges on ${u.name} Lv.${legacyLevel(u.id)+1}? (Each unspent badge multiplies earnings ×1.12 — this is permanent.)`)) return;
+  state.badges -= cost;
+  state.legacyLevels[u.id] = legacyLevel(u.id) + 1;
+  if (!state.legacyUpgrades.includes(u.id)) state.legacyUpgrades.push(u.id);
+  toast(`🌟 Legacy upgrade: <b>${u.name} Lv.${state.legacyLevels[u.id]}</b>!`);
   renderLegacy(); checkAchievements(); refreshAll(); saveGame();
 });
 
 /* ---------- Purchases ---------- */
 let buyQty = 1;
 document.querySelectorAll(".qty-btn").forEach(btn=>btn.addEventListener("click", ()=>{
-  buyQty = Number(btn.dataset.qty) || 1;
+  buyQty = btn.dataset.qty === "max" ? "max" : (Number(btn.dataset.qty) || 1);
   document.querySelectorAll(".qty-btn").forEach(b=>b.classList.toggle("active", b===btn));
   refreshShop();
 }));
@@ -659,10 +721,30 @@ function bulkCost(b, qty){
   for (let i=0;i<qty;i++) total += Math.ceil(b.baseCost * Math.pow(COST_GROWTH, owned+i));
   return Math.max(qty, Math.ceil(total * costMult()));
 }
+function maxAffordable(b){
+  // Closed-form geometric series: sum of ceil(base * 1.15^(owned+i)) <= balance
+  const owned = state.buildings[b.id]||0, cm = costMult();
+  const first = b.baseCost * Math.pow(COST_GROWTH, owned) * cm;
+  if (first > state.balance) return { qty:0, total:0 };
+  let qty = Math.floor(Math.log(1 + state.balance * (COST_GROWTH-1) / first) / Math.log(COST_GROWTH));
+  qty = Math.max(1, Math.min(100000, qty));
+  const totalFor = q => Math.ceil(b.baseCost * Math.pow(COST_GROWTH, owned) * (Math.pow(COST_GROWTH, q) - 1) / (COST_GROWTH - 1) * cm) + q;
+  // analytic estimate can be a hair off due to per-step ceilings — nudge to exact
+  while (qty > 1 && totalFor(qty) > state.balance) qty--;
+  while (qty < 100000 && totalFor(qty+1) <= state.balance) qty++;
+  return { qty, total: totalFor(qty) };
+}
 function buyBuilding(id){
-  const b = BUILDINGS.find(x=>x.id===id), cost = bulkCost(b, buyQty);
-  if (state.balance < cost) return;
-  state.balance -= cost; state.buildings[id] += buyQty;
+  const b = BUILDINGS.find(x=>x.id===id);
+  if (buyQty === "max"){
+    const { qty, total } = maxAffordable(b);
+    if (qty < 1) return;
+    state.balance -= total; state.buildings[id] += qty;
+  } else {
+    const cost = bulkCost(b, buyQty);
+    if (state.balance < cost) return;
+    state.balance -= cost; state.buildings[id] += buyQty;
+  }
   pop(els.buildingShop); checkAchievements(); refreshAll(); saveGame();
 }
 function buyUpgrade(id){
@@ -733,7 +815,7 @@ function spawnGolden(){
   el.type="button"; el.className="golden-mon"; el.title="Golden Magikarp! Click it!";
   el.innerHTML = imgTag(ANIM_SPRITE(129, true), "🐟", "Golden Magikarp");
   el.addEventListener("click", ()=>{
-    const reward = Math.max(100, getDPS()*60, clickPower()*25) * (legacyHas("legacy-gold") ? 5 : 1);
+    const reward = Math.max(100, getDPS()*60, clickPower()*25) * Math.pow(5, legacyLevel("legacy-gold"));
     earn(reward); state.goldenCaught++;
     toast(`🐟✨ Golden Magikarp! +<b>${fmtMoney(reward)}</b>!`);
     jingle([784,988,1175,1568]);
@@ -853,7 +935,7 @@ async function throwBall(){
     updateInventoryUI(); syncBallPicker();
   }
   const safariMult = (encounter.bait ? 1.25 : 1) * (encounter.rock ? 1.5 : 1);
-  const finalP = encounter.ball==="master" ? 1 : clamp01(encounter.rate * rating.mult * (encounter.berry ? 1.45 : 1) * (BALL_TYPES[encounter.ball] ? BALL_TYPES[encounter.ball].mult : 1) * (currentWeather().id==="rain" ? 1.10 : 1) * buffMult("catch") * safariMult * (legacyHas("legacy-catch") ? 1.25 : 1));
+  const finalP = encounter.ball==="master" ? 1 : clamp01(encounter.rate * rating.mult * (encounter.berry ? 1.45 : 1) * (BALL_TYPES[encounter.ball] ? BALL_TYPES[encounter.ball].mult : 1) * (currentWeather().id==="rain" ? 1.10 : 1) * buffMult("catch") * safariMult * Math.pow(1.25, legacyLevel("legacy-catch")));
   const shakeP = encounter.ball==="master" ? 1 : Math.cbrt(finalP);
   let shakes = 0; while (shakes < 3 && Math.random() < shakeP) shakes++;
   for (let i=0;i<shakes;i++){
@@ -1816,18 +1898,20 @@ function refreshHUD(){
   els.stat.badges.textContent = formatNumber(state.badges);
   const tb = $("time-bonus"); if (tb) tb.textContent = isNight() ? "🌙 Night: Legendary & shiny odds ×2" : "☀️ Daytime hunting";
   els.prestigePending.textContent = formatNumber(prestigePending());
+  const pnc = $("prestige-next-cost"); if (pnc) pnc.textContent = fmtMoney(prestigeNextCost());
+  const pm = $("prestige-mult"); if (pm) pm.textContent = "×" + formatNumber(prestigeMult());
   els.btnPrestige.disabled = prestigePending() < 1;
   els.btnPrestige.textContent = prestigePending() >= 1
     ? `Challenge the League — earn ${formatNumber(prestigePending())} 🏅`
-    : "Challenge the League (needs $1M this run)";
+    : `Challenge the League (next badge: ${fmtMoney(prestigeNextCost())} this run)`;
 }
 function refreshAll(){ refreshHUD(); refreshShop(); refreshItems(); refreshVault(); renderLegacy(); }
 
 /* ---------- Prestige / reset / mute ---------- */
 els.btnPrestige.addEventListener("click", ()=>{
   const pending = prestigePending(); if (pending < 1) return;
-  if (!confirm(`Prestige now? You'll lose current dollars, buildings and evolution items, but gain ${pending} Gym Badge(s) (+${pending*10}% permanent earnings). Pokédex & achievements are kept.`)) return;
-  state.badges += pending; state.balance = legacyHas("legacy-start") ? 50000 : 0; state.runEarned = 0;
+  if (!confirm(`Prestige now? You'll lose current dollars, buildings and evolution items, but gain ${pending} Gym Badge(s). Each badge multiplies ALL earnings ×1.12 forever (you'll have ×${formatNumber(Math.pow(1.12, state.badges + pending))} total), and badge prices rise ×100 per badge. Pokédex & achievements are kept.`)) return;
+  state.badges += pending; state.badgesEarned = badgesEarnedTotal() + pending; state.balance = legacyLevel("legacy-start") ? 50000 * Math.pow(10, legacyLevel("legacy-start")-1) : 0; state.runEarned = 0;
   state.buildings = Object.fromEntries(BUILDINGS.map(b=>[b.id,0]));
   state.upgrades = []; state.revealedBuildings = []; state.revealedUpgrades = [];
   els.banner.classList.add("hidden");
