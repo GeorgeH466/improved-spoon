@@ -104,3 +104,14 @@ Your friend beat v6 in 1.5 hours, so the ceiling is gone.
 - **MAX bulk-buy button** — buy as many of a building as your balance allows, computed in
   closed form so it stays instant even at $1e200 balances.
 - Lifetime milestones and achievements now extend to **$1e200**.
+
+## Quality-of-life update
+
+- **Upgrade Vault only shows unlocked upgrades.** With 691 Vault upgrades, locked tiles no
+  longer fill the shop: a tile appears the moment you meet its condition (own N of a building /
+  total clicks / lifetime earnings). A status line shows how many are ready, owned, and still
+  hidden. Buying still re-checks the condition server-side (well, handler-side).
+- **Wild encounters are toggleable.** A 🧭 switch sits right under the "Next wild encounter"
+  tracker (and mirrors in ⚙️ Settings). Turning it off pauses encounter progress — no modal
+  interruptions while you're clicking in peace — and turning it back on resumes where you left
+  off. Old saves default to ON. The setting persists with your save.

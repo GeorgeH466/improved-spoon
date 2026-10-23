@@ -374,7 +374,7 @@ function defaultState(){
     upgrades:[], pokedex:{}, shinyDex:{}, achievements:[], badges:0,
     bonusPct:0, encounters:0, throws:0, excellentThrows:0, shinies:0, legendaryCaught:0,
     revealedBuildings:[], revealedUpgrades:[], muted:false,
-    settings:{ theme:"kanto", particles:true, shake:true, floatText:true, reduceMotion:false, notation:"suffix", eventFreq:"chill" },
+    settings:{ theme:"kanto", particles:true, shake:true, floatText:true, reduceMotion:false, notation:"suffix", eventFreq:"chill", wildEncounters:true },
     items:{ berry:3, great:0, ultra:0, master:0 },
     buddyId:null, maxCombo:0, goldenCaught:0, quests:[], questDay:"", questsDone:0,
     region:"Kanto", leadersDefeated:{}, battleCooldownUntil:0, egg:null, eggsHatched:0, leaderWins:0,
@@ -415,6 +415,7 @@ function buffMult(kind){
 }
 function costMult(){ return state.buffs.reduce((m,b)=> m * (b.kind==="sale" ? b.mult : 1), 1); }
 function modeMult(){ return state.mode==="zen" ? 1.2 : state.mode==="nuzlocke" ? 1.25 : 1; }
+function wildEncountersOn(){ return state.settings.wildEncounters !== false; }
 function effectiveCatchClicks(){ return state.buffs.some(b=>b.kind==="swarm" && b.expires>Date.now()) ? 50 : CLICKS_PER_CATCH; }
 function globalMultiplier(){ return prestigeMult() * (1 + state.bonusPct * 0.01 * (1 + legacyLevel("legacy-dex"))) * (1 + leaderBonus()) * modeMult() * currentWeather().dps * buffMult("dps") * globalUpgradeMult() * Math.pow(3, legacyLevel("legacy-dps")); }
 function trainerLevel(){ return Math.floor(Math.sqrt(state.lifetime / 500)) + 1; }
@@ -664,19 +665,28 @@ function refreshVault(){
   const nowMs = performance.now();
   if (nowMs - lastVaultRefresh < 400) return;
   lastVaultRefresh = nowMs;
+  let readyCount = 0, ownedCount = 0, lockedCount = 0;
   for (const u of VAULT){
     const row = vaultRows[u.id]; if (!row) continue;
     const owned = state.upgrades.includes(u.id);
-    row.root.classList.toggle("hidden", owned);
-    if (owned) continue;
+    if (owned){ ownedCount++; row.root.classList.add("hidden"); continue; }
     const reqMet = u.req();
-    row.req.textContent = reqMet ? "✔ Ready" : `🔒 ${u.reqLabel}`;
+    // Only appear once the unlock condition is met — no more scrolling past
+    // hundreds of locked tiles whose conditions you haven't reached yet.
+    row.root.classList.toggle("hidden", !reqMet);
+    if (!reqMet){ lockedCount++; continue; }
+    readyCount++;
+    row.req.textContent = "✔ Ready";
     row.cost.textContent = fmtMoney(u.cost);
-    const canBuy = reqMet && state.balance >= u.cost;
+    const canBuy = state.balance >= u.cost;
     row.root.disabled = !canBuy;
     row.root.classList.toggle("cant-afford", !canBuy);
-    row.root.classList.toggle("ready", reqMet);
+    row.root.classList.add("ready");
   }
+  const status = $("vault-status");
+  if (status) status.textContent = readyCount
+    ? `${readyCount} upgrade${readyCount===1?"":"s"} unlocked & waiting · ${ownedCount} owned · ${lockedCount} still hidden (they appear when you meet their condition)`
+    : `No upgrades unlocked right now · ${ownedCount} owned · ${lockedCount} hidden — upgrades appear here the moment you meet their condition`;
 }
 function buyVault(id){
   const u = VAULT.find(x=>x.id===id);
@@ -794,7 +804,7 @@ els.ball.addEventListener("pointerdown", e => {
   const crit = Math.random() < (currentWeather().id==="storm" ? 0.10 : 0.05);
   const gain = clickPower() * comboMult() * (crit ? 10 : 1);
   earn(gain);
-  state.totalClicks++; state.clicksSinceCatch++;
+  state.totalClicks++; if (wildEncountersOn()) state.clicksSinceCatch++;
   els.ball.classList.add("pressed"); setTimeout(()=>els.ball.classList.remove("pressed"), 90);
   spawnFloatText(e.clientX || rectCenter().x, e.clientY || rectCenter().y, "+" + fmtMoney(gain) + (crit ? " CRIT!" : ""), crit ? "crit" : "");
   if (crit && state.settings.shake){ els.stage.classList.remove("stage-shake"); void els.stage.offsetWidth; els.stage.classList.add("stage-shake"); jingle([880,1175,1568]); }
@@ -802,7 +812,7 @@ els.ball.addEventListener("pointerdown", e => {
   updateComboUI();
   if (state.buddyId && state.totalClicks % 200 === 0){ state.items.berry++; toast("🐾 Your Buddy found a <b>🍓 Razz Berry</b>!"); updateInventoryUI(); }
   if (state.egg){ state.egg.progress++; if (state.egg.progress >= state.egg.target) hatchEgg(); else if (state.egg.progress % 25 === 0) renderEgg(); }
-  if (state.clicksSinceCatch >= effectiveCatchClicks() && !encounter){ state.clicksSinceCatch = 0; startEncounter(); }
+  if (wildEncountersOn() && state.clicksSinceCatch >= effectiveCatchClicks() && !encounter){ state.clicksSinceCatch = 0; startEncounter(); }
   checkAchievements(); refreshHUD();
 });
 
@@ -1204,6 +1214,7 @@ function syncSettingsUI(){
   set("set-sound", !state.muted); set("set-particles", state.settings.particles);
   set("set-shake", state.settings.shake); set("set-floattext", state.settings.floatText);
   set("set-reduce-motion", state.settings.reduceMotion);
+  set("set-wild", wildEncountersOn()); set("set-wild-quick", wildEncountersOn());
   document.querySelectorAll("[data-notation]").forEach(b=>b.classList.toggle("active", state.settings.notation===b.dataset.notation));
   document.querySelectorAll("[data-events]").forEach(b=>b.classList.toggle("active", (state.settings.eventFreq||"chill")===b.dataset.events));
   document.querySelectorAll("[data-theme-choice]").forEach(b=>b.classList.toggle("active", state.settings.theme===b.dataset.themeChoice));
@@ -1223,8 +1234,11 @@ document.querySelectorAll("[data-notation]").forEach(b=>b.addEventListener("clic
 }));
 [["set-sound",v=>{ state.muted = !v; }],["set-particles",v=>{ state.settings.particles=v; }],
  ["set-shake",v=>{ state.settings.shake=v; }],["set-floattext",v=>{ state.settings.floatText=v; }],
+ ["set-wild",v=>{ state.settings.wildEncounters=v; toast(v?"🧭 Wild encounters <b>ON</b> — keep clicking!":"🧭 Wild encounters <b>OFF</b> — click in peace."); }],
+ ["set-wild-quick",v=>{ state.settings.wildEncounters=v; toast(v?"🧭 Wild encounters <b>ON</b> — keep clicking!":"🧭 Wild encounters <b>OFF</b> — click in peace."); }],
  ["set-reduce-motion",v=>{ state.settings.reduceMotion=v; applySettings(); }]].forEach(([id,fn])=>{
-  $(id).addEventListener("change", e=>{ fn(e.target.checked); syncMuteBtn(); refreshAll(); saveGame(); });
+  const el = $(id); if (!el) return;
+  el.addEventListener("change", e=>{ fn(e.target.checked); syncSettingsUI(); syncMuteBtn(); refreshAll(); saveGame(); });
 });
 
 /* ---------- Regions ---------- */
@@ -1870,8 +1884,9 @@ function refreshHUD(){
   els.balance.textContent = fmtMoney(state.balance);
   els.dps.textContent = fmtMoney(dps);
   els.clickPower.textContent = fmtMoney(clickPower());
-  els.catchBar.style.width = Math.min(100, state.clicksSinceCatch / effectiveCatchClicks() * 100) + "%";
-  const chc = document.querySelector(".catch-progress-head span:last-child"); if (chc) chc.innerHTML = `<b>${state.clicksSinceCatch}</b> / ${effectiveCatchClicks()} clicks`;
+  els.catchBar.style.width = wildEncountersOn() ? Math.min(100, state.clicksSinceCatch / effectiveCatchClicks() * 100) + "%" : "0%";
+  const chc = document.querySelector(".catch-progress-head span:last-child");
+  if (chc) chc.innerHTML = wildEncountersOn() ? `<b>${state.clicksSinceCatch}</b> / ${effectiveCatchClicks()} clicks` : `<b>Off</b> — paused`;
   els.stat.balance.textContent = fmtMoney(state.balance);
   els.stat.dps.textContent = fmtRate(dps);
   els.stat.lifetime.textContent = fmtMoney(state.lifetime);
