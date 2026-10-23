@@ -115,3 +115,10 @@ Your friend beat v6 in 1.5 hours, so the ceiling is gone.
   tracker (and mirrors in ⚙️ Settings). Turning it off pauses encounter progress — no modal
   interruptions while you're clicking in peace — and turning it back on resumes where you left
   off. Old saves default to ON. The setting persists with your save.
+
+### Fixes (post-QoL)
+- The Vault now also gates on affordability: an upgrade appears once its condition is met
+  **and** you hold at least half its price (sticky thereafter), and the Vault refreshes on the
+  main game tick — a late-game save no longer sees all 691 tiles at once. Asset URLs are
+  cache-busted (`?v=`) so browser caches can't serve a stale `game.js` against new HTML, and
+  `startEncounter()` itself refuses to open while encounters are toggled off.

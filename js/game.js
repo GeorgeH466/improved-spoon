@@ -373,7 +373,7 @@ function defaultState(){
     buildings:Object.fromEntries(BUILDINGS.map(b=>[b.id,0])),
     upgrades:[], pokedex:{}, shinyDex:{}, achievements:[], badges:0,
     bonusPct:0, encounters:0, throws:0, excellentThrows:0, shinies:0, legendaryCaught:0,
-    revealedBuildings:[], revealedUpgrades:[], muted:false,
+    revealedBuildings:[], revealedUpgrades:[], revealedVault:[], muted:false,
     settings:{ theme:"kanto", particles:true, shake:true, floatText:true, reduceMotion:false, notation:"suffix", eventFreq:"chill", wildEncounters:true },
     items:{ berry:3, great:0, ultra:0, master:0 },
     buddyId:null, maxCombo:0, goldenCaught:0, quests:[], questDay:"", questsDone:0,
@@ -471,6 +471,7 @@ function loadGame(){
       achievements:Array.isArray(parsed.achievements)?parsed.achievements:[],
       revealedBuildings:Array.isArray(parsed.revealedBuildings)?parsed.revealedBuildings:[],
       revealedUpgrades:Array.isArray(parsed.revealedUpgrades)?parsed.revealedUpgrades:[],
+      revealedVault:Array.isArray(parsed.revealedVault)?parsed.revealedVault:[],
       shinyDex:parsed.shinyDex && typeof parsed.shinyDex==="object"?parsed.shinyDex:{},
       settings:{ ...fresh.settings, ...(parsed.settings||{}) },
       items:{ ...fresh.items, ...(parsed.items||{}) },
@@ -665,16 +666,21 @@ function refreshVault(){
   const nowMs = performance.now();
   if (nowMs - lastVaultRefresh < 400) return;
   lastVaultRefresh = nowMs;
-  let readyCount = 0, ownedCount = 0, lockedCount = 0;
+  let readyCount = 0, ownedCount = 0, lockedCount = 0, savingCount = 0;
+  if (!Array.isArray(state.revealedVault)) state.revealedVault = [];
   for (const u of VAULT){
     const row = vaultRows[u.id]; if (!row) continue;
     const owned = state.upgrades.includes(u.id);
     if (owned){ ownedCount++; row.root.classList.add("hidden"); continue; }
     const reqMet = u.req();
-    // Only appear once the unlock condition is met — no more scrolling past
-    // hundreds of locked tiles whose conditions you haven't reached yet.
-    row.root.classList.toggle("hidden", !reqMet);
-    if (!reqMet){ lockedCount++; continue; }
+    if (!reqMet){ row.root.classList.add("hidden"); lockedCount++; continue; }
+    // Condition met. Reveal once you hold at least half the price (same idea as
+    // the building shop's reveal rule); once revealed it stays while the
+    // condition holds, so the grid doesn't flicker as your balance moves.
+    if (state.balance >= u.cost * 0.5 && !state.revealedVault.includes(u.id)) state.revealedVault.push(u.id);
+    const revealed = state.revealedVault.includes(u.id);
+    row.root.classList.toggle("hidden", !revealed);
+    if (!revealed){ savingCount++; continue; }
     readyCount++;
     row.req.textContent = "✔ Ready";
     row.cost.textContent = fmtMoney(u.cost);
@@ -684,9 +690,8 @@ function refreshVault(){
     row.root.classList.add("ready");
   }
   const status = $("vault-status");
-  if (status) status.textContent = readyCount
-    ? `${readyCount} upgrade${readyCount===1?"":"s"} unlocked & waiting · ${ownedCount} owned · ${lockedCount} still hidden (they appear when you meet their condition)`
-    : `No upgrades unlocked right now · ${ownedCount} owned · ${lockedCount} hidden — upgrades appear here the moment you meet their condition`;
+  if (status) status.textContent =
+    `${readyCount} upgrade${readyCount===1?"":"s"} showing · ${ownedCount} owned · ${savingCount} unlocked but hidden until you hold half their price · ${lockedCount} condition not yet met`;
 }
 function buyVault(id){
   const u = VAULT.find(x=>x.id===id);
@@ -859,6 +864,7 @@ function pickWild(){
 }
 
 function startEncounter(){
+  if (!wildEncountersOn()) return; // encounters toggled off — never open
   const mon = pickWild();
   encounter = { ...mon, shiny:Math.random() < SHINY_CHANCE * (isNight() ? 2 : 1) * buffMult("shiny"), balls:(state.mode==="nuzlocke" ? 1 : 3), berry:false, bait:false, rock:false, busy:false, over:false, ringScale:1, ball:"poke", seq:++encounterSeq };
   state.encounters++;
@@ -1234,11 +1240,16 @@ document.querySelectorAll("[data-notation]").forEach(b=>b.addEventListener("clic
 }));
 [["set-sound",v=>{ state.muted = !v; }],["set-particles",v=>{ state.settings.particles=v; }],
  ["set-shake",v=>{ state.settings.shake=v; }],["set-floattext",v=>{ state.settings.floatText=v; }],
- ["set-wild",v=>{ state.settings.wildEncounters=v; toast(v?"🧭 Wild encounters <b>ON</b> — keep clicking!":"🧭 Wild encounters <b>OFF</b> — click in peace."); }],
- ["set-wild-quick",v=>{ state.settings.wildEncounters=v; toast(v?"🧭 Wild encounters <b>ON</b> — keep clicking!":"🧭 Wild encounters <b>OFF</b> — click in peace."); }],
  ["set-reduce-motion",v=>{ state.settings.reduceMotion=v; applySettings(); }]].forEach(([id,fn])=>{
   const el = $(id); if (!el) return;
   el.addEventListener("change", e=>{ fn(e.target.checked); syncSettingsUI(); syncMuteBtn(); refreshAll(); saveGame(); });
+});
+
+document.addEventListener("change", e=>{
+  if (e.target.id !== "set-wild" && e.target.id !== "set-wild-quick") return;
+  state.settings.wildEncounters = e.target.checked;
+  toast(e.target.checked ? "🧭 Wild encounters <b>ON</b> — keep clicking!" : "🧭 Wild encounters <b>OFF</b> — click in peace.");
+  syncSettingsUI(); refreshAll(); saveGame();
 });
 
 /* ---------- Regions ---------- */
@@ -1928,7 +1939,7 @@ els.btnPrestige.addEventListener("click", ()=>{
   if (!confirm(`Prestige now? You'll lose current dollars, buildings and evolution items, but gain ${pending} Gym Badge(s). Each badge multiplies ALL earnings ×1.12 forever (you'll have ×${formatNumber(Math.pow(1.12, state.badges + pending))} total), and badge prices rise ×100 per badge. Pokédex & achievements are kept.`)) return;
   state.badges += pending; state.badgesEarned = badgesEarnedTotal() + pending; state.balance = legacyLevel("legacy-start") ? 50000 * Math.pow(10, legacyLevel("legacy-start")-1) : 0; state.runEarned = 0;
   state.buildings = Object.fromEntries(BUILDINGS.map(b=>[b.id,0]));
-  state.upgrades = []; state.revealedBuildings = []; state.revealedUpgrades = [];
+  state.upgrades = []; state.revealedBuildings = []; state.revealedUpgrades = []; state.revealedVault = [];
   els.banner.classList.add("hidden");
   toast(`🏅 Prestige complete! You earned <b>${pending} Gym Badge(s)</b>.`);
   setNews("A trainer has challenged the League and returned stronger than ever!");
@@ -1960,7 +1971,7 @@ setInterval(()=>{ // 10 ticks/sec passive income, drift-corrected
   if (state.questDay !== new Date().toDateString()){ renderQuests(); renderDaily(); }
   ensureWeather(false); renderEffects(); checkMilestones(); checkSpeedrun();
   updateRegions(); refreshGym();
-  refreshHUD(); refreshShop(); refreshItems();
+  refreshHUD(); refreshShop(); refreshItems(); refreshVault();
 }, 100);
 setInterval(saveGame, 10000);                       // autosave every 10s
 window.addEventListener("beforeunload", saveGame);  // …and on exit
