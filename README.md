@@ -80,3 +80,45 @@ Or just open `index.html` in a browser.
   stays intact even if the CDN is unreachable.
 - Pure-CSS Pokéball (no image asset to break), `pointerdown` handling for mouse + touch,
   drift-corrected 100 ms income ticks, and shop rows built once and updated in place.
+
+## Oblivion Update — scaling to $1e200 and beyond
+
+Your friend beat v6 in 1.5 hours, so the ceiling is gone.
+
+- **66 building types** (was 18): the original ladder to the Arceus Shrine, then 40 cosmic
+  buildings (Time Machine → Reality Forge → …) and 8 **Oblivion buildings** topping out at a
+  **$1e200** final building producing $1e188/sec base. Building upgrade tiers now run to
+  **1,000 owned** (10 tiers per building, 691 Vault tiles) plus 16 Oblivion Research upgrades
+  (each ×2 to everything). Number formatting now runs through the full short scale and into
+  clean exponential notation past ~e237 — $1e200 displays compactly, never as Infinity.
+- **Prestige, reworked — badges get expensive.** The flat "1 badge per $1M" is gone. The first
+  Gym Badge costs $1M earned in a run, and **each successive badge costs ×100 more** ($100M,
+  $10B, $1T, … up to ~$1e194 for badge #97). In exchange each badge now **multiplies ALL
+  earnings ×1.12, compounding** (badge #50 alone is worth ×289). Badge prices are based on
+  *lifetime badges earned*, so spending badges never makes the next one cheaper. The prestige
+  card always shows your next badge's price and your current total multiplier.
+- **Legacy Shop is now repeatable.** Every Legacy perk can be levelled indefinitely, and its
+  price rises **×8 per level** (Legacy Fingers: 1 🏅, then 8, 64, 512…). Effects stack per
+  level (×3 click per level, ×5 Golden Magikarp per level, Golden Start ×10 per level…). Old
+  saves migrate automatically: previously owned perks become Lv.1.
+- **MAX bulk-buy button** — buy as many of a building as your balance allows, computed in
+  closed form so it stays instant even at $1e200 balances.
+- Lifetime milestones and achievements now extend to **$1e200**.
+
+## Quality-of-life update
+
+- **Upgrade Vault only shows unlocked upgrades.** With 691 Vault upgrades, locked tiles no
+  longer fill the shop: a tile appears the moment you meet its condition (own N of a building /
+  total clicks / lifetime earnings). A status line shows how many are ready, owned, and still
+  hidden. Buying still re-checks the condition server-side (well, handler-side).
+- **Wild encounters are toggleable.** A 🧭 switch sits right under the "Next wild encounter"
+  tracker (and mirrors in ⚙️ Settings). Turning it off pauses encounter progress — no modal
+  interruptions while you're clicking in peace — and turning it back on resumes where you left
+  off. Old saves default to ON. The setting persists with your save.
+
+### Fixes (post-QoL)
+- The Vault now also gates on affordability: an upgrade appears once its condition is met
+  **and** you hold at least half its price (sticky thereafter), and the Vault refreshes on the
+  main game tick — a late-game save no longer sees all 691 tiles at once. Asset URLs are
+  cache-busted (`?v=`) so browser caches can't serve a stale `game.js` against new HTML, and
+  `startEncounter()` itself refuses to open while encounters are toggled off.

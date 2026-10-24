@@ -7,7 +7,7 @@
 <meta name="description" content="PokéClicker: a Pokémon-themed incremental clicker game. Click the Pokéball, build your empire, catch and evolve Pokémon!" />
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://raw.githubusercontent.com" />
-<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/style.css?v=8" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%23ee1515'/><path d='M4 50a46 46 0 0 0 92 0z' fill='%23fff'/><rect x='4' y='46' width='92' height='8' fill='%23222'/><circle cx='50' cy='50' r='13' fill='%23222'/><circle cx='50' cy='50' r='8' fill='%23fff'/></svg>" />
 </head>
 <body>
@@ -88,6 +88,7 @@
         </div>
         <div class="progress-track"><div id="catch-bar" class="progress-fill"></div></div>
         <p class="hint">Every 100 manual clicks, a wild Pokémon appears! Time your throw in the catching minigame — every catch is a permanent <b>+1% DPS</b> (✨ shiny = +5%)!</p>
+        <label class="setting-row"><span>🧭 Wild Pokémon encounters</span><input type="checkbox" id="set-wild-quick" checked></label>
       </div>
 
       <div id="encounter-banner" class="encounter-banner hidden" role="status"></div>
@@ -189,11 +190,11 @@
 
       <div class="prestige-card">
         <h2 class="panel-title">🏅 Prestige — League Challenge</h2>
-        <p>Reset your dollars, buildings and evolution items to earn <b>Gym Badges</b>: 1 badge per <b>$1,000,000</b> earned this run. Each badge grants a permanent <b>+10%</b> to all earnings. Your Pokédex, achievements and lifetime stats are kept.</p>
-        <p class="prestige-pending">Badges available now: <b id="prestige-pending">0</b></p>
+        <p>Reset your dollars, buildings and evolution items to earn <b>Gym Badges</b>. The first badge costs <b>$1,000,000</b> earned this run — but <b>each successive badge costs ×100 more</b> ($100M, then $10B, then $1T…). Each badge <b>multiplies ALL earnings ×1.12, compounding forever</b>. Your Pokédex, achievements and lifetime stats are kept.</p>
+        <p class="prestige-pending">Badges available now: <b id="prestige-pending">0</b> · Next badge costs <b id="prestige-next-cost">—</b> this run · Badge multiplier: <b id="prestige-mult">×1</b></p>
         <button id="btn-prestige" class="btn btn-prestige" type="button">Challenge the League (Prestige)</button>
         <h3 class="settings-h">🌟 Legacy Shop — spend Gym Badges (permanent, survives prestige!)</h3>
-        <p class="shop-note">Careful: unspent badges each give +10% earnings. Spending them here trades that for powerful permanent perks.</p>
+        <p class="shop-note">Careful: every unspent badge multiplies all earnings ×1.12 (compounding). Spending badges here trades that multiplier for powerful permanent perks — and Legacy prices rise ×8 per level.</p>
         <div id="legacy-list" class="legacy-list"></div>
       </div>
     </section>
@@ -206,6 +207,7 @@
         <button type="button" class="qty-btn active" data-qty="1">×1</button>
         <button type="button" class="qty-btn" data-qty="10">×10</button>
         <button type="button" class="qty-btn" data-qty="100">×100</button>
+        <button type="button" class="qty-btn" data-qty="max">MAX</button>
       </div>
       <div id="building-shop" class="shop-list"></div>
 
@@ -214,7 +216,8 @@
       <div id="item-shop" class="shop-list"></div>
 
       <h2 class="panel-title evolution-title">🏦 Upgrade Vault</h2>
-      <p class="shop-note">Cookie-Clicker-style upgrades: building tiers (own 10/25/50/100/150/200 → ×2 each), click upgrades (total-click milestones → ×2), and global research (lifetime milestones → ×all). They appear when you're close.</p>
+      <p class="shop-note">Cookie-Clicker-style upgrades: building tiers (own 10/25/50/…/1000 → ×2 each), click upgrades (total-click milestones → ×2), and global research (lifetime milestones → ×all). <b>An upgrade only appears here once you've met its unlock condition AND hold at least half its price</b> — no scrolling through hundreds of locked, unaffordable ones. Once shown, it stays shown.</p>
+      <p id="vault-status" class="shop-note" role="status"></p>
       <div id="vault-grid" class="vault-grid"></div>
 
       <h2 class="panel-title evolution-title">✨ Evolution Items</h2>
@@ -321,6 +324,7 @@
     <label class="setting-row"><span>📳 Screen shake on crits</span><input type="checkbox" id="set-shake"></label>
     <label class="setting-row"><span>💬 Floating +$ text</span><input type="checkbox" id="set-floattext"></label>
     <label class="setting-row"><span>🐢 Reduce motion (calm animations)</span><input type="checkbox" id="set-reduce-motion"></label>
+    <label class="setting-row"><span>🧭 Wild Pokémon encounters (every 100 clicks)</span><input type="checkbox" id="set-wild"></label>
     <h3 class="settings-h">🌍 Random world events</h3>
     <div class="ball-picker" role="group" aria-label="Event frequency">
       <button type="button" class="events-choice" data-events="off">Off</button>
@@ -340,6 +344,6 @@
 
 <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
 
-<script src="js/game.js"></script>
+<script src="js/game.js?v=8"></script>
 </body>
 </html>
